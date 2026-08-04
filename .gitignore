@@ -39,3 +39,10 @@ api/node_modules/
 # Client
 client/dist/
 client/node_modules/
+
+#Yarn Files
+.yarn/
+
+#Local env files
+.env
+.env.*
