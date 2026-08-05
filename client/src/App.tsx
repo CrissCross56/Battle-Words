@@ -32,6 +32,8 @@ import '@ionic/react/css/palettes/dark.system.css';
 
 /* Theme variables */
 import './theme/variables.css';
+import JoinLobby from './pages/JoinLobby';
+import MakeLobby from './pages/MakeLobby';
 
 setupIonicReact();
 
@@ -44,6 +46,12 @@ const App: React.FC = () => (
         </Route>
         <Route exact path="/">
           <Redirect to="/home" />
+        </Route>
+        <Route exact path="/join-lobby">
+          <JoinLobby />
+        </Route>
+        <Route exact path="/make-lobby">
+          <MakeLobby />
         </Route>
       </IonRouterOutlet>
     </IonReactRouter>
