@@ -1,0 +1,19 @@
+.yarn/*
+!.yarn/patches
+!.yarn/plugins
+!.yarn/releases
+!.yarn/sdks
+!.yarn/versions
+
+node_modules
+
+.pnp.*
+
+# Environment variables
+.env
+
+# Prisma generated client
+src/generated/prisma/
+
+# Build output
+dist/
