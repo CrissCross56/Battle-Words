@@ -1,5 +1,19 @@
+.yarn/*
+!.yarn/patches
+!.yarn/plugins
+!.yarn/releases
+!.yarn/sdks
+!.yarn/versions
+
 node_modules
-# Keep environment variables out of version control
+
+.pnp.*
+
+# Environment variables
 .env
 
-/src/generated/prisma
+# Prisma generated client
+src/generated/prisma/
+
+# Build output
+dist/

@@ -1,13 +1,120 @@
-// This is your Prisma schema file,
-// learn more about it in the docs: https://pris.ly/d/prisma-schema
-
-// Get a free hosted Postgres database in seconds: `npx create-db`
-
 generator client {
-  provider = "prisma-client"
-  output   = "../src/generated/prisma"
+  provider = "prisma-client-js"
 }
 
 datasource db {
   provider = "postgresql"
+}
+
+model Room {
+  id        String   @id @default(cuid())
+  code      String   @unique
+  createdAt DateTime @default(now())
+
+  players Player[]
+  games   Game[]
+}
+
+model Player {
+  id        String   @id @default(cuid())
+  username  String
+
+  roomId String
+  room   Room @relation(fields: [roomId], references: [id], onDelete: Cascade)
+
+  joinedAt DateTime @default(now())
+
+  gamePlayers GamePlayer[]
+
+  // Prevent duplicate usernames within the same room
+  @@unique([roomId, username])
+}
+
+// Word Bank
+model Word {
+  id    Int @id @default(autoincrement())
+  value String @unique
+
+  games Game[]
+}
+
+model Game {
+  id String @id @default(cuid())
+
+  roomId String
+  room   Room @relation(fields: [roomId], references: [id], onDelete: Cascade)
+
+  // The actual English word
+  answerId Int
+  answer   Word @relation(fields: [answerId], references: [id])
+
+  // Randomly generated when the game starts
+  scramble String
+
+  startedAt DateTime @default(now())
+  endedAt   DateTime?
+
+  players GamePlayer[]
+
+  @@index([roomId, endedAt])
+}
+
+model GamePlayer {
+  id String @id @default(cuid())
+
+  gameId String
+  game   Game @relation(fields: [gameId], references: [id], onDelete: Cascade)
+
+  playerId String
+  player   Player @relation(fields: [playerId], references: [id], onDelete: Cascade)
+
+  // Stage 1 (Guess the scramble)
+  scrambleSolved Boolean @default(false)
+  scramblePoints Int @default(0)
+  scrambleSolvedAt DateTime?
+
+  // Stage 2 (Unscramble the word)
+  unscrambleStartedAt DateTime?
+
+  answerSolved Boolean @default(false)
+  answerPoints Int @default(0)
+  answerSolvedAt DateTime?
+
+  // Cached for fast leaderboards
+  totalPoints Int @default(0)
+
+  scrambleGuesses  ScrambleGuess[]
+  answerGuesses    UnscrambleGuess[]
+
+  @@unique([gameId, playerId])
+}
+
+model ScrambleGuess {
+  id String @id @default(cuid())
+
+  gamePlayerId String
+  gamePlayer   GamePlayer @relation(fields: [gamePlayerId], references: [id], onDelete: Cascade)
+
+  guess String
+
+  // 1-5
+  guessNumber Int
+
+  correct Boolean @default(false)
+
+  createdAt DateTime @default(now())
+}
+
+model UnscrambleGuess {
+  id String @id @default(cuid())
+
+  gamePlayerId String
+  gamePlayer   GamePlayer @relation(fields: [gamePlayerId], references: [id], onDelete: Cascade)
+
+  // Player's guess for the actual English word
+  guess String
+
+  correct Boolean @default(false)
+
+  createdAt DateTime @default(now())
 }
