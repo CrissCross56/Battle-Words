@@ -11,23 +11,8 @@ model Room {
   code      String   @unique
   createdAt DateTime @default(now())
 
-  players Player[]
+  members RoomMember[]
   games   Game[]
-}
-
-model Player {
-  id        String   @id @default(cuid())
-  username  String
-
-  roomId String
-  room   Room @relation(fields: [roomId], references: [id], onDelete: Cascade)
-
-  joinedAt DateTime @default(now())
-
-  gamePlayers GamePlayer[]
-
-  // Prevent duplicate usernames within the same room
-  @@unique([roomId, username])
 }
 
 // Word Bank
@@ -59,34 +44,54 @@ model Game {
   @@index([roomId, endedAt])
 }
 
+enum RoomMemberRole {
+  PLAYER
+  SPECTATOR
+}
+
+model RoomMember {
+  id        String          @id @default(cuid())
+  username  String
+  role      RoomMemberRole
+
+  roomId String
+  room   Room @relation(fields: [roomId], references: [id], onDelete: Cascade)
+
+  joinedAt DateTime @default(now())
+
+  gamePlayers GamePlayer[]
+
+  @@unique([roomId, username])
+}
+
 model GamePlayer {
   id String @id @default(cuid())
 
   gameId String
   game   Game @relation(fields: [gameId], references: [id], onDelete: Cascade)
 
-  playerId String
-  player   Player @relation(fields: [playerId], references: [id], onDelete: Cascade)
+  memberId String
+  member   RoomMember @relation(fields: [memberId], references: [id], onDelete: Cascade)
 
-  // Stage 1 (Guess the scramble)
-  scrambleSolved Boolean @default(false)
-  scramblePoints Int @default(0)
+  // Stage 1: Guess the scramble
+  scrambleSolved   Boolean   @default(false)
+  scramblePoints   Int       @default(0)
   scrambleSolvedAt DateTime?
 
-  // Stage 2 (Unscramble the word)
+  // Stage 2: Unscramble the word
   unscrambleStartedAt DateTime?
 
-  answerSolved Boolean @default(false)
-  answerPoints Int @default(0)
+  answerSolved   Boolean   @default(false)
+  answerPoints   Int       @default(0)
   answerSolvedAt DateTime?
 
   // Cached for fast leaderboards
   totalPoints Int @default(0)
 
-  scrambleGuesses  ScrambleGuess[]
-  answerGuesses    UnscrambleGuess[]
+  scrambleGuesses ScrambleGuess[]
+  answerGuesses   UnscrambleGuess[]
 
-  @@unique([gameId, playerId])
+  @@unique([gameId, memberId])
 }
 
 model ScrambleGuess {
