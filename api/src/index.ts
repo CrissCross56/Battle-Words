@@ -1,12 +1,14 @@
 import express from 'express'
 import gameRoutes from './routes/games'
 import roomRoutes from './routes/rooms'
+import cors from 'cors'
 
 const app = express()
 const PORT = process.env.PORT || 3000
 
 // Middleware
 app.use(express.json())
+app.use(cors())
 
 // Routes
 app.use('/games', gameRoutes)
