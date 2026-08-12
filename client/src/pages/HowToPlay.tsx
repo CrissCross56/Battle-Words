@@ -26,23 +26,26 @@ const HowToPlay = () => {
     <IonPage>
       <IonHeader>
         <IonToolbar>
-          <IonTitle>🤔 How To Play</IonTitle>
+          <IonTitle>How To Play</IonTitle>
         </IonToolbar>
       </IonHeader>
 
       <IonContent className="ion-padding">
         <IonText>
-          <h2>⚔️ Battle Words ⚔️</h2>
-          <p>A realtime multiplayer word guessing game.</p>
+          <h2>Battle-Words</h2>
+          <p>A realtime multiplayer word game.</p>
         </IonText>
 
         <IonText>
-          <h3>🎯 Objective</h3>
-          <p>Be the first to unscramble the word and score the most points!</p>
+          <h3>Objective</h3>
+          <p>
+            Be the first player to reach the target score by finding letters and unscrambling words faster
+            than your opponents.
+          </p>
         </IonText>
 
         <IonText>
-          <h3>📋 How It Works</h3>
+          <h3>How It Works</h3>
           <IonList>
             <IonItem>
               <IonLabel>
@@ -58,39 +61,55 @@ const HowToPlay = () => {
             </IonItem>
             <IonItem>
               <IonLabel>
-                <strong>3. Guess the Scrabled Letters</strong>
-                <p>Five empty boxes will appear. Type your guesses and submit it — the first to correctly guess the scmabled letters, scores points!</p>
+                <strong>3. Find the Letters</strong>
+                <p>
+                  The game shows you a scrambled word, but you don't have to guess the whole word at once.
+                  Instead, you guess individual letters. The closer your guess is to the correct letter,
+                  the brighter the color feedback. Use the color clues to find each letter in order.
+                  Each correct letter you find gets locked in, making the unscramble easier.
+                </p>
               </IonLabel>
             </IonItem>
             <IonItem>
-                <IonLabel>
-                    <strong>4.Unscramble the Letters! </strong>
-                    <p>Now unscramble the letter soup, and try to find the correct word. Best of luck..</p>
-             </IonLabel>
+              <IonLabel>
+                <strong>4. Unscramble the Word</strong>
+                <p>
+                  Once all the letters are revealed, unscramble them to form the correct word.
+                  This plays like a classic word unscramble game — arrange the letters in the right order
+                  to match the target word. The faster you unscramble, the more points you earn.
+                </p>
+              </IonLabel>
             </IonItem>
             <IonItem>
               <IonLabel>
-                <strong>5. Chain Through The Scramble</strong>
-                <p>After a word is guessed, the next scrambled word loads automatically. Keep going until all words are used.</p>
+                <strong>5. The Game Pauses After Each Word</strong>
+                <p>
+                  After a word is unscrambled, the game pauses briefly to allow other players to submit their answers.
+                  Then the next word loads automatically.
+                </p>
               </IonLabel>
             </IonItem>
             <IonItem>
               <IonLabel>
                 <strong>6. Win the Game</strong>
-                <p>The player with the most points at the end of 5 rounds, wins!</p>
+                <p>
+                  The first player to reach the target score wins the game.
+                  A leaderboard is displayed showing the final rankings.
+                </p>
+                <p>
+                  <em>Note: Point system details are still being finalized.</em>
+                </p>
               </IonLabel>
             </IonItem>
           </IonList>
         </IonText>
 
         <IonText>
-          <h3>💡 Tips</h3>
+          <h3>Tips</h3>
           <ul>
-            <li>The colors don't lie chico - the brighter the color the closer you are!</li>
-            <li>Think fast — the first correct scrambled guess gets bonus point!</li>
-            <li>Save on guesses - less guesses = more bonus points awareded!</li>
-            <li>Stay focused — time can run out from you very quickly!</li>
-            <li>Communicate with your team - if you're playing in a group, work together!</li>
+            <li>Think fast — the faster you find letters and unscramble, the more points you earn.</li>
+            <li>Pay attention to color feedback — it tells you how close your guess is to the correct letter.</li>
+            <li>Each correct letter you find gets locked in, so focus on one letter at a time.</li>
           </ul>
         </IonText>
 
