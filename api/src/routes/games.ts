@@ -1,7 +1,185 @@
 import { Router } from 'express'
 import { prisma } from '../lib/prisma'
-import { getLetterHints, generateScramble } from '../lib/gameUtils'
+import {
+  getLetterHints,
+  generateScramble,
+  isGameExpired,
+  isRoundPlayerFinished
+} from '../lib/gameUtils'
 const router = Router()
+
+async function checkRoundCompletion (gameId: string) {
+  const game = await prisma.game.findUnique({
+    where: {
+      id: gameId
+    }
+  })
+
+  if (!game || game.endedAt) {
+    return
+  }
+
+  const round = await prisma.round.findUnique({
+    where: {
+      gameId_roundNumber: {
+        gameId,
+        roundNumber: game.currentRound
+      }
+    }
+  })
+
+  if (!round || round.endedAt) {
+    return
+  }
+
+  const roundPlayers = await prisma.roundPlayer.findMany({
+    where: {
+      roundId: round.id
+    }
+  })
+
+  for (const roundPlayer of roundPlayers) {
+    const scrambleGuessCount = await prisma.scrambleGuess.count({
+      where: {
+        roundPlayerId: roundPlayer.id
+      }
+    })
+
+    const finished = isRoundPlayerFinished(
+      roundPlayer.scrambleSolved,
+      roundPlayer.answerSolved,
+      scrambleGuessCount,
+      roundPlayer.unscrambleStartedAt
+    )
+
+    if (!finished) {
+      return
+    }
+  }
+
+  // Everyone is finished.
+  await prisma.round.update({
+    where: {
+      id: round.id
+    },
+    data: {
+      endedAt: new Date()
+    }
+  })
+
+  // More rounds remain.
+  if (game.currentRound < game.totalRounds) {
+    const nextRoundNumber = game.currentRound + 1
+
+    const wordCount = await prisma.word.count()
+
+    if (wordCount === 0) {
+      throw new Error('No words available')
+    }
+
+    const randomIndex = Math.floor(Math.random() * wordCount)
+
+    const answer = await prisma.word.findFirst({
+      skip: randomIndex
+    })
+
+    if (!answer) {
+      throw new Error('No words available')
+    }
+
+    const scramble = generateScramble(answer.value)
+
+    await prisma.$transaction(async tx => {
+      await tx.game.update({
+        where: {
+          id: game.id
+        },
+        data: {
+          currentRound: nextRoundNumber
+        }
+      })
+
+      const nextRound = await tx.round.create({
+        data: {
+          gameId: game.id,
+          roundNumber: nextRoundNumber,
+          answerId: answer.id,
+          scramble
+        }
+      })
+
+      const gamePlayers = await tx.gamePlayer.findMany({
+        where: {
+          gameId: game.id
+        }
+      })
+
+      for (const gamePlayer of gamePlayers) {
+        await tx.roundPlayer.create({
+          data: {
+            roundId: nextRound.id,
+            gamePlayerId: gamePlayer.id
+          }
+        })
+      }
+    })
+
+    return
+  }
+
+  // This was the final round.
+  await prisma.game.update({
+    where: {
+      id: game.id
+    },
+    data: {
+      endedAt: new Date()
+    }
+  })
+}
+
+async function expireGameIfNeeded (gameId: string) {
+  const game = await prisma.game.findUnique({
+    where: {
+      id: gameId
+    }
+  })
+
+  if (!game || game.endedAt) {
+    return false
+  }
+
+  if (!isGameExpired(game.startedAt)) {
+    return false
+  }
+
+  const now = new Date()
+
+  await prisma.$transaction(async tx => {
+    // End the current round if it is still active
+    await tx.round.updateMany({
+      where: {
+        gameId: game.id,
+        endedAt: null
+      },
+      data: {
+        endedAt: now
+      }
+    })
+
+    // End the game
+    await tx.game.update({
+      where: {
+        id: game.id
+      },
+      data: {
+        endedAt: now
+      }
+    })
+  })
+
+  return true
+}
 
 router.get('/', async (req, res) => {
   try {
@@ -23,6 +201,77 @@ router.get('/', async (req, res) => {
 
     res.status(500).json({
       error: 'Failed to fetch games'
+    })
+  }
+})
+
+router.get('/:gameId/status', async (req, res) => {
+  try {
+    const { gameId } = req.params
+
+    const game = await prisma.game.findUnique({
+      where: {
+        id: gameId
+      }
+    })
+
+    if (!game) {
+      return res.status(404).json({
+        error: 'Game not found'
+      })
+    }
+
+    // End the game if the 5-minute limit has expired.
+    const gameExpired = await expireGameIfNeeded(gameId)
+
+    if (gameExpired) {
+      const endedGame = await prisma.game.findUnique({
+        where: {
+          id: gameId
+        }
+      })
+
+      return res.json({
+        gameEnded: true,
+        game: endedGame
+      })
+    }
+
+    // Check whether the current round has finished.
+    await checkRoundCompletion(gameId)
+
+    const updatedGame = await prisma.game.findUnique({
+      where: {
+        id: gameId
+      }
+    })
+
+    if (!updatedGame) {
+      return res.status(404).json({
+        error: 'Game not found'
+      })
+    }
+
+    const round = await prisma.round.findUnique({
+      where: {
+        gameId_roundNumber: {
+          gameId,
+          roundNumber: updatedGame.currentRound
+        }
+      }
+    })
+
+    res.json({
+      gameEnded: updatedGame.endedAt !== null,
+      currentRound: updatedGame.currentRound,
+      totalRounds: updatedGame.totalRounds,
+      round
+    })
+  } catch (error) {
+    console.error(error)
+
+    res.status(500).json({
+      error: 'Failed to fetch game status'
     })
   }
 })
@@ -188,6 +437,12 @@ router.post('/:gameId/scramble-guess', async (req, res) => {
       })
     }
 
+    if (isGameExpired(game.startedAt)) {
+      return res.status(400).json({
+        error: 'Game has ended'
+      })
+    }
+
     if (game.endedAt) {
       return res.status(400).json({
         error: 'Game has ended'
@@ -277,14 +532,20 @@ router.post('/:gameId/scramble-guess', async (req, res) => {
     })
 
     if (!correct) {
+      const finished = isRoundPlayerFinished(false, false, guessNumber, null)
+
+      if (finished) {
+        await checkRoundCompletion(gameId)
+      }
+
       return res.json({
         correct: false,
         guessNumber,
         guessesRemaining: 5 - guessNumber,
+        finished,
         hints: getLetterHints(normalizedGuess, round.scramble)
       })
     }
-
     const scramblePoints = 6 - guessNumber
 
     const winnerUpdate = await prisma.round.updateMany({
@@ -333,6 +594,7 @@ router.post('/:gameId/scramble-guess', async (req, res) => {
       }
     })
 
+    await checkRoundCompletion(gameId)
     return res.json({
       correct: true,
       guessNumber,
@@ -375,6 +637,12 @@ router.post('/:gameId/unscramble-guess', async (req, res) => {
     if (!game) {
       return res.status(404).json({
         error: 'Game not found'
+      })
+    }
+
+    if (isGameExpired(game.startedAt)) {
+      return res.status(400).json({
+        error: 'Game has ended'
       })
     }
 
@@ -516,6 +784,8 @@ router.post('/:gameId/unscramble-guess', async (req, res) => {
         }
       }
     })
+
+    await checkRoundCompletion(gameId)
 
     return res.json({
       correct: true,

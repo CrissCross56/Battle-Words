@@ -69,3 +69,58 @@ export function generateScramble (word: string): string {
 
   return letters.join('')
 }
+
+export function isRoundPlayerFinished (
+  scrambleSolved: boolean,
+  answerSolved: boolean,
+  scrambleGuessCount: number,
+  unscrambleStartedAt: Date | null
+): boolean {
+  // Solved the final answer
+  if (answerSolved) {
+    return true
+  }
+
+  // Failed to solve the scramble after 5 guesses
+  if (!scrambleSolved && scrambleGuessCount >= 5) {
+    return true
+  }
+
+  // Solved the scramble, but the 30-second
+  // unscramble period has expired
+  if (scrambleSolved && unscrambleStartedAt) {
+    const deadline = new Date(unscrambleStartedAt.getTime() + 30 * 1000)
+
+    if (new Date() >= deadline) {
+      return true
+    }
+  }
+
+  return false
+}
+// Big Timer of 5 minutes. Terminate the game if 5 minutes elasped
+const GAME_DURATION_MS = 5 * 60 * 1000
+
+export function isGameExpired (startedAt: Date): boolean {
+  const gameDeadline = new Date(startedAt.getTime() + GAME_DURATION_MS)
+
+  return new Date() >= gameDeadline
+}
+
+export function isRoundFinished (
+  players: Array<{
+    scrambleSolved: boolean
+    answerSolved: boolean
+    scrambleGuessCount: number
+    unscrambleStartedAt: Date | null
+  }>
+): boolean {
+  return players.every(player =>
+    isRoundPlayerFinished(
+      player.scrambleSolved,
+      player.answerSolved,
+      player.scrambleGuessCount,
+      player.unscrambleStartedAt
+    )
+  )
+}
