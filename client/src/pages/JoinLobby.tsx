@@ -1,5 +1,32 @@
 import {IonPage, IonTitle} from '@ionic/react';
 import { useForm } from 'react-hook-form';
+import { useMutation } from "@tanstack/react-query";
+
+//function to get data on all games from the backend
+async function getAllGames(){
+    const res = await fetch("my api route goes here",{
+        method: "GET",
+        headers:{
+            "Content-Type": "application/json"
+        }
+    })
+    if(!res.ok) throw new Error("Something went wrong while getting the game data from the backend")
+        return res.json();
+}
+
+
+// Function to send data to the backend
+async function sendLobbyData(data: any){
+    const res = await fetch("my api route goes here",{
+        method: "POST",
+        headers:{
+            "Content-Type": "application/json"
+        },
+        body: JSON.stringify(data)
+    })
+    if(!res.ok) throw new Error("Something went wrong while sending lobby data to the backend")
+        return res.json();
+}
 
 
 const JoinLobby: React.FC = () => {
@@ -21,6 +48,17 @@ const JoinLobby: React.FC = () => {
         console.log(data);
         reset();
     }
+
+
+    const mutation = useMutation({
+    mutationFn: sendLobbyData,
+    onSuccess: () => {
+      // Common things to do here later:
+      // - queryClient.invalidateQueries({ queryKey: ["messages"] }) to refetch a list
+      // - show a toast, redirect, etc.
+    },
+    });
+
     
     return (
         <IonPage>
