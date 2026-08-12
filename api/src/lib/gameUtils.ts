@@ -13,3 +13,15 @@ export function getLetterHints (guess: string, target: string): number[] {
     return letterDistance(letter, targetLetters[index])
   })
 }
+
+export function generateRoomCode (length: number = 8): string {
+  const characters = 'ABCDEFGHJKLMNPQRSTUVWXYZ1234567890'
+  let code = ''
+
+  for (let i = 0; i < length; i++) {
+    const randomIndex = Math.floor(Math.random() * characters.length)
+    code += characters[randomIndex]
+  }
+
+  return code
+}
