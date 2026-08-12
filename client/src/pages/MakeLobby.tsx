@@ -1,6 +1,7 @@
 import {IonPage, IonTitle, IonButton, IonHeader} from '@ionic/react';
 import { useForm } from 'react-hook-form';
 import { useMutation } from "@tanstack/react-query";
+import { Redirect } from 'react-router';
 
 // Function to send data to the backend
 async function sendLobbyData(data: any) {
@@ -45,6 +46,9 @@ const MakeLobby: React.FC = () => {
       // Common things to do here later:
       // - queryClient.invalidateQueries({ queryKey: ["messages"] }) to refetch a list
       // - show a toast, redirect, etc.
+
+      //navigate to the game lobby page after a successful send 
+      return <Redirect to="/game-lobby" />;
     },
   });
 

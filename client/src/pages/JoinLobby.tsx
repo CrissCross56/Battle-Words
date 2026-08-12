@@ -1,6 +1,7 @@
 import {IonPage, IonTitle} from '@ionic/react';
 import { useForm } from 'react-hook-form';
 import { useMutation, useQuery } from "@tanstack/react-query";
+import { Redirect } from 'react-router-dom';
 
 //function to get data on all games from the backend
 async function getAllGames(){
@@ -38,11 +39,11 @@ const JoinLobby: React.FC = () => {
         }
     })
 
-    const onSubmit = async (data: any) => {
-        //replace with tanstack query to send data to backend and get response
-        console.log(data);
-        reset();
-    }
+    // const onSubmit = async (data: any) => {
+    //     //replace with tanstack query to send data to backend and get response
+    //     console.log(data);
+    //     reset();
+    // }
 
     const {data, isLoading, isError} = useQuery({
         queryKey: ["games"],
@@ -52,13 +53,16 @@ const JoinLobby: React.FC = () => {
     const mutation = useMutation({
     mutationFn: sendLobbyData,
     onSuccess: () => {
-      // Common things to do here later:
-      // - queryClient.invalidateQueries({ queryKey: ["messages"] }) to refetch a list
-      // - show a toast, redirect, etc.
+        // Common things to do here later:
+        // - queryClient.invalidateQueries({ queryKey: ["messages"] }) to refetch a list
+        // - show a toast, redirect, etc.
+
+        return <Redirect to="/game-lobby" />;
     },
     });
 
-    
+    const onSubmit = (data: any) => mutation.mutate(data);
+
     return (
         <IonPage>
             <IonTitle>Join Lobby</IonTitle>
