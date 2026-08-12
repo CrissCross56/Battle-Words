@@ -17,29 +17,26 @@ model Room {
 
 // Word Bank
 model Word {
-  id    Int @id @default(autoincrement())
+  id    Int    @id @default(autoincrement())
   value String @unique
 
-  games Game[]
+  rounds Round[]
 }
 
 model Game {
   id String @id @default(cuid())
 
   roomId String
-  room   Room @relation(fields: [roomId], references: [id], onDelete: Cascade)
+  room   Room   @relation(fields: [roomId], references: [id], onDelete: Cascade)
 
-  // The actual English word
-  answerId Int
-  answer   Word @relation(fields: [answerId], references: [id])
-
-  // Randomly generated when the game starts
-  scramble String
-
-  startedAt DateTime @default(now())
+  startedAt DateTime  @default(now())
   endedAt   DateTime?
 
+  currentRound Int @default(1)
+  totalRounds  Int
+
   players GamePlayer[]
+  rounds  Round[]
 
   @@index([roomId, endedAt])
 }
@@ -50,12 +47,12 @@ enum RoomMemberRole {
 }
 
 model RoomMember {
-  id        String          @id @default(cuid())
-  username  String
-  role      RoomMemberRole
+  id       String         @id @default(cuid())
+  username String
+  role     RoomMemberRole
 
   roomId String
-  room   Room @relation(fields: [roomId], references: [id], onDelete: Cascade)
+  room   Room   @relation(fields: [roomId], references: [id], onDelete: Cascade)
 
   joinedAt DateTime @default(now())
 
@@ -68,10 +65,56 @@ model GamePlayer {
   id String @id @default(cuid())
 
   gameId String
-  game   Game @relation(fields: [gameId], references: [id], onDelete: Cascade)
+  game   Game   @relation(fields: [gameId], references: [id], onDelete: Cascade)
 
   memberId String
   member   RoomMember @relation(fields: [memberId], references: [id], onDelete: Cascade)
+
+  // Total score across all 5 rounds
+  totalPoints Int @default(0)
+
+  roundPlayers RoundPlayer[]
+
+  @@unique([gameId, memberId])
+}
+
+model Round {
+  id String @id @default(cuid())
+
+  gameId String
+  game   Game   @relation(fields: [gameId], references: [id], onDelete: Cascade)
+
+  // 1-5
+  roundNumber Int
+
+  // Actual English word for this round
+  answerId Int
+  answer   Word @relation(fields: [answerId], references: [id])
+
+  // Randomly generated when the round starts
+  scramble String
+
+  startedAt DateTime  @default(now())
+  endedAt   DateTime?
+
+  // First player to solve the scramble
+  scrambleWinnerId String?
+  scrambleWinner   RoundPlayer? @relation("RoundScrambleWinner", fields: [scrambleWinnerId], references: [id])
+
+  players RoundPlayer[]
+
+  @@unique([gameId, roundNumber])
+  @@index([gameId, endedAt])
+}
+
+model RoundPlayer {
+  id String @id @default(cuid())
+
+  roundId String
+  round   Round  @relation(fields: [roundId], references: [id], onDelete: Cascade)
+
+  gamePlayerId String
+  gamePlayer   GamePlayer @relation(fields: [gamePlayerId], references: [id], onDelete: Cascade)
 
   // Stage 1: Guess the scramble
   scrambleSolved   Boolean   @default(false)
@@ -80,25 +123,26 @@ model GamePlayer {
 
   // Stage 2: Unscramble the word
   unscrambleStartedAt DateTime?
+  answerSolved        Boolean   @default(false)
+  answerPoints        Int       @default(0)
+  answerSolvedAt      DateTime?
 
-  answerSolved   Boolean   @default(false)
-  answerPoints   Int       @default(0)
-  answerSolvedAt DateTime?
-
-  // Cached for fast leaderboards
+  // Score earned during this round
   totalPoints Int @default(0)
 
   scrambleGuesses ScrambleGuess[]
   answerGuesses   UnscrambleGuess[]
 
-  @@unique([gameId, memberId])
+  wonScrambleRounds Round[] @relation("RoundScrambleWinner")
+
+  @@unique([roundId, gamePlayerId])
 }
 
 model ScrambleGuess {
   id String @id @default(cuid())
 
-  gamePlayerId String
-  gamePlayer   GamePlayer @relation(fields: [gamePlayerId], references: [id], onDelete: Cascade)
+  roundPlayerId String
+  roundPlayer   RoundPlayer @relation(fields: [roundPlayerId], references: [id], onDelete: Cascade)
 
   guess String
 
@@ -113,8 +157,8 @@ model ScrambleGuess {
 model UnscrambleGuess {
   id String @id @default(cuid())
 
-  gamePlayerId String
-  gamePlayer   GamePlayer @relation(fields: [gamePlayerId], references: [id], onDelete: Cascade)
+  roundPlayerId String
+  roundPlayer   RoundPlayer @relation(fields: [roundPlayerId], references: [id], onDelete: Cascade)
 
   // Player's guess for the actual English word
   guess String
