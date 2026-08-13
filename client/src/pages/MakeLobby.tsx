@@ -2,10 +2,11 @@ import {IonPage, IonTitle, IonButton, IonHeader} from '@ionic/react';
 import { useForm } from 'react-hook-form';
 import { useMutation } from "@tanstack/react-query";
 import { Redirect } from 'react-router';
+import { useState } from 'react';
 
 // Function to send data to the backend
 async function sendLobbyData(data: any) {
-    const res = await fetch("localhost3000/",{
+    const res = await fetch("localhost:3000/:roomCode/start",{
         method: "POST",
         headers:{
             "Content-Type": "application/json"
@@ -17,6 +18,11 @@ async function sendLobbyData(data: any) {
 }
 
 const MakeLobby: React.FC = () => {
+
+    const [lobbyObject , setLobbyObject] = useState<any>({
+        
+    });
+
     const{
         register,
         handleSubmit,

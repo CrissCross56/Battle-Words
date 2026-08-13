@@ -13,7 +13,7 @@ async function getAllGames(){
 
 // Function to send data to the backend
 async function sendLobbyData(data: any){
-    const res = await fetch("my api route goes here",{
+    const res = await fetch("localhost/:roomCode/start",{
         method: "POST",
         headers:{
             "Content-Type": "application/json"
