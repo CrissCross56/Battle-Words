@@ -19,6 +19,7 @@ const Home: React.FC = () => {
         <IonButton routerLink="/join-lobby">Join Lobby</IonButton>
         <IonButton routerLink="/make-lobby">Make Lobby</IonButton>
         <IonButton routerLink="/how-to-play">How to Play!</IonButton>
+        <IonButton routerLink="/game">Play Game (Temp)</IonButton>
       </IonContent>
     </IonPage>
   );
