@@ -14,9 +14,9 @@ import {
   IonCol,
   IonButton,
   IonText,
-  IonIcon,
 } from '@ionic/react'
 import { useIonRouter } from '@ionic/react'
+import './Game.css'  // ✅ CSS import added — this fixes the grid
 
 // Dummy game state for UI development
 const DUMMY_GUESSES = [
@@ -32,9 +32,9 @@ const DUMMY_COLORS = [
   ['green', 'green', 'green', 'green', 'green'],
   ['green', 'green', 'green', 'green', 'green'],
   ['yellow', 'green', 'yellow', 'green', 'gray'],
-  ['', '', '', '', ''],
-  ['', '', '', '', ''],
-  ['', '', '', '', ''],
+  [' ', ' ', ' ', ' ', ' '],
+  [' ', ' ', ' ', ' ', ' '],
+  [' ', ' ', ' ', ' ', ' '],
 ]
 
 const KEYBOARD_ROWS = [
@@ -47,6 +47,10 @@ const Game: React.FC = () => {
   const router = useIonRouter()
   const [guesses] = useState(DUMMY_GUESSES)
   const [colors] = useState(DUMMY_COLORS)
+
+  // State for the dual-box UI
+  const [currentLetter, setCurrentLetter] = useState('')
+  const [letterFeedback, setLetterFeedback] = useState<'left' | 'right' | 'correct' | null>(null)
 
   // Temporary: go back to home
   const goHome = () => {
@@ -64,7 +68,6 @@ const Game: React.FC = () => {
 
   // Determine the color for keyboard keys
   const getKeyColor = (letter: string) => {
-    // For demo: assign some dummy colors
     const keyColors: Record<string, string> = {
       C: 'green',
       R: 'green',
@@ -108,22 +111,38 @@ const Game: React.FC = () => {
             </IonCol>
           </IonRow>
 
-          {/* Scores */}
+          {/* Dual-Box UI — Letter Feedback */}
           <IonRow className="ion-justify-content-center ion-margin-top">
             <IonCol size="12" sizeMd="8" sizeLg="6">
-              <IonText>
-                <h4>🏆 Scores</h4>
-              </IonText>
-              <div className="scores">
-                <div>
-                  <strong>Player 1:</strong> 1000
+              <div className="letter-hint-container">
+                {/* Upper Box — Letter Display */}
+                <div className="letter-box upper">
+                  <span className="letter">{currentLetter || '?'}</span>
                 </div>
-                <div>
-                  <strong>Player 2:</strong> 750
+
+                {/* Lower Box — Color Feedback */}
+                <div className="letter-box lower">
+                  <div
+                    className={`color-fill ${letterFeedback === 'correct' ? 'full' : ''}`}
+                    style={{
+                      width: letterFeedback === 'left' ? '50%' : letterFeedback === 'right' ? '50%' : '0%',
+                      marginRight: letterFeedback === 'right' ? '0' : 'auto',
+                      marginLeft: letterFeedback === 'left' ? '0' : 'auto',
+                    }}
+                  />
                 </div>
-                <div>
-                  <strong>Player 3:</strong> 500
-                </div>
+              </div>
+            </IonCol>
+          </IonRow>
+
+          {/* Round Counter & Timer (MVP) */}
+          <IonRow className="ion-justify-content-center ion-margin-top">
+            <IonCol size="12" sizeMd="8" sizeLg="6">
+              <div className="game-info">
+                <IonText>
+                  <p>Round: <strong>1</strong> / 10</p>
+                  <p>Time: <strong>30</strong>s</p>
+                </IonText>
               </div>
             </IonCol>
           </IonRow>
@@ -148,11 +167,11 @@ const Game: React.FC = () => {
             </IonCol>
           </IonRow>
 
-          {/* Temporary: Back to Home */}
+          {/* Go Back Button (MVP) */}
           <IonRow className="ion-justify-content-center ion-margin-top">
             <IonCol size="12" sizeMd="8" sizeLg="6">
               <IonButton expand="block" color="medium" onClick={goHome}>
-                Back to Home (Temporary)
+                Go Back
               </IonButton>
             </IonCol>
           </IonRow>
