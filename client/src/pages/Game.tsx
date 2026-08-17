@@ -1,4 +1,6 @@
 // client/src/pages/Game.tsx
+// Updated to use POST for game status polling
+
 import { useState, useEffect } from 'react'
 import {
   IonPage,
@@ -34,6 +36,7 @@ const Game: React.FC = () => {
   const [colors, setColors] = useState<string[][]>([])
   const [currentRow, setCurrentRow] = useState(0)
   const [currentCol, setCurrentCol] = useState(0)
+  const [isLoading, setIsLoading] = useState(true)
 
   // Dual-box UI state
   const [currentLetter, setCurrentLetter] = useState('')
@@ -50,6 +53,56 @@ const Game: React.FC = () => {
   const timer = useGameStore((state) => state.timer)
   const isTimerActive = useGameStore((state) => state.isTimerActive)
   const updateScore = useGameStore((state) => state.updateScore)
+  const setGameState = useGameStore((state) => state.setGameState)
+
+  // Poll game status using POST
+  useEffect(() => {
+    const fetchGameStatus = async () => {
+      if (!roomCode) return
+
+      try {
+        const response = await fetch(`http://localhost:3000/games/${roomCode}/status`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ roomCode }),
+        })
+
+        if (response.ok) {
+          const data = await response.json()
+          console.log('Game status update:', data)
+
+          // Update store with latest game state
+          setGameState({
+            currentWord: data.currentWord,
+            scrambledWord: data.scrambledWord,
+            round: data.currentRound || round,
+            maxRounds: data.totalRounds || maxRounds,
+            timer: data.timer || 30,
+            gameStatus: data.status?.toLowerCase() || 'playing',
+          })
+
+          // Update scores if available
+          if (data.players) {
+            data.players.forEach((p: any) => {
+              if (p.score !== undefined) {
+                updateScore(p.username, p.score)
+              }
+            })
+          }
+        }
+      } catch (err) {
+        console.error('Error fetching game status:', err)
+      } finally {
+        setIsLoading(false)
+      }
+    }
+
+    if (roomCode) {
+      fetchGameStatus()
+      const interval = setInterval(fetchGameStatus, 3000)
+      return () => clearInterval(interval)
+    }
+  }, [roomCode, setGameState, updateScore, round, maxRounds])
 
   // Initialize grid
   useEffect(() => {
@@ -62,19 +115,16 @@ const Game: React.FC = () => {
   // Handle keyboard input
   const handleLetter = (letter: string) => {
     if (letter === 'Enter') {
-      // Submit guess
       const guess = guesses[currentRow].join('')
       if (guess.length === WORD_LENGTH && currentWord) {
-        // Check guess against current word
         const result = checkGuess(guess, currentWord)
         const newColors = [...colors]
         newColors[currentRow] = result
         setColors(newColors)
         setCurrentRow(currentRow + 1)
         setCurrentCol(0)
-        // Update scores if correct
         if (result.every(c => c === 'green')) {
-          updateScore('player', 1000) // TODO: Replace with actual player
+          updateScore('player', 1000)
         }
       }
       return
@@ -110,7 +160,6 @@ const Game: React.FC = () => {
     const guessArr = guess.split('')
     const used = new Array(WORD_LENGTH).fill(false)
 
-    // Check green
     for (let i = 0; i < WORD_LENGTH; i++) {
       if (guessArr[i] === targetArr[i]) {
         result[i] = 'green'
@@ -118,7 +167,6 @@ const Game: React.FC = () => {
       }
     }
 
-    // Check yellow
     for (let i = 0; i < WORD_LENGTH; i++) {
       if (result[i] !== 'green') {
         let found = false
@@ -137,12 +185,25 @@ const Game: React.FC = () => {
 
   const goBack = () => router.push(`/game-lobby/${roomCode}`)
 
-  if (!currentWord) {
+  if (isLoading) {
     return (
       <IonPage>
         <IonContent className="ion-padding" style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '100%' }}>
           <IonSpinner name="crescent" />
           <IonText className="ion-padding-start">Loading game...</IonText>
+        </IonContent>
+      </IonPage>
+    )
+  }
+
+  if (!currentWord) {
+    return (
+      <IonPage>
+        <IonContent className="ion-padding">
+          <IonText>
+            <h2>Waiting for game to start...</h2>
+          </IonText>
+          <IonButton expand="block" onClick={goBack}>Back to Lobby</IonButton>
         </IonContent>
       </IonPage>
     )

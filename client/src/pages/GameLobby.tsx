@@ -1,4 +1,6 @@
 // client/src/pages/GameLobby.tsx
+// Updated to use POST for game status (per Hao-Bin's backend)
+
 import { useState, useEffect } from 'react'
 import {
   IonPage,
@@ -29,6 +31,7 @@ const GameLobby: React.FC = () => {
   const [members, setMembers] = useState<any[]>([])
   const [isLoading, setIsLoading] = useState(true)
   const [isHost, setIsHost] = useState(false)
+  const [gameId, setGameId] = useState<string | null>(null)
 
   const roomCodeFromStore = useGameStore((state) => state.roomCode)
   const roomMembers = useGameStore((state) => state.roomMembers)
@@ -37,25 +40,63 @@ const GameLobby: React.FC = () => {
 
   const effectiveRoomCode = roomCode || roomCodeFromStore
 
-  // Poll for room status
+  // Poll for room status using POST
   useEffect(() => {
     const fetchRoomStatus = async () => {
       if (!effectiveRoomCode) return
+
       try {
-        const response = await fetch(`http://localhost:3000/rooms/${effectiveRoomCode}`)
+        // Use POST for game status
+        const response = await fetch(`http://localhost:3000/games/${effectiveRoomCode}/status`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ roomCode: effectiveRoomCode }),
+        })
+
         if (response.ok) {
           const data = await response.json()
-          if (data.members) {
-            setMembers(data.members)
-            const host = data.members.find((m: any) => m.role === 'HOST')
-            setIsHost(!!host)
+          console.log('Game status:', data)
+
+          if (data.members || data.players) {
+            const playerList = data.members || data.players
+            const formattedMembers = playerList.map((p: any) => ({
+              id: p.id || p.memberId,
+              username: p.username,
+              role: p.role || p.isHost ? 'HOST' : 'PLAYER'
+            }))
+            setMembers(formattedMembers)
+            setIsHost(formattedMembers.some((m: any) => m.role === 'HOST'))
+          }
+
+          if (data.id) {
+            setGameId(data.id)
+            setGameState({
+              currentWord: data.currentWord,
+              scrambledWord: data.scrambledWord,
+              round: data.currentRound || 0,
+              maxRounds: data.totalRounds || 3,
+              timer: data.timer || 30,
+              gameStatus: data.status?.toLowerCase() || 'waiting'
+            })
           }
         } else {
-          // Fallback to store data
-          const storeMembers = roomMembers.length > 0 ? roomMembers : 
-            players.map(p => ({ id: p.id, username: p.username, role: p.isHost ? 'HOST' : 'PLAYER' }))
-          setMembers(storeMembers)
-          setIsHost(storeMembers.some((m: any) => m.role === 'HOST'))
+          // Fallback to room endpoint (also POST if needed)
+          const roomResponse = await fetch(`http://localhost:3000/rooms/${effectiveRoomCode}`, {
+            method: 'GET',
+          })
+          if (roomResponse.ok) {
+            const roomData = await roomResponse.json()
+            if (roomData.members) {
+              setMembers(roomData.members)
+              setIsHost(roomData.members.some((m: any) => m.role === 'HOST'))
+            }
+          } else {
+            // Fallback to store data
+            const storeMembers = roomMembers.length > 0 ? roomMembers :
+              players.map(p => ({ id: p.id, username: p.username, role: p.isHost ? 'HOST' : 'PLAYER' }))
+            setMembers(storeMembers)
+            setIsHost(storeMembers.some((m: any) => m.role === 'HOST'))
+          }
         }
       } catch (err) {
         console.error('Polling error:', err)
@@ -67,8 +108,9 @@ const GameLobby: React.FC = () => {
     fetchRoomStatus()
     const interval = setInterval(fetchRoomStatus, 3000)
     return () => clearInterval(interval)
-  }, [effectiveRoomCode, roomMembers, players])
+  }, [effectiveRoomCode, roomMembers, players, setGameState])
 
+  // Start game (POST)
   const startGame = async () => {
     if (!effectiveRoomCode) {
       setError('No room code found')
@@ -92,7 +134,13 @@ const GameLobby: React.FC = () => {
 
       const game = await response.json()
       console.log('Game started:', game)
-      setGameState({ maxRounds: totalRounds, currentRound: 1 })
+
+      setGameState({
+        maxRounds: totalRounds,
+        currentRound: 1,
+        gameStatus: 'playing'
+      })
+
       router.push(`/game/${effectiveRoomCode}`)
 
     } catch (err) {
@@ -132,7 +180,10 @@ const GameLobby: React.FC = () => {
     <IonPage>
       <IonHeader><IonToolbar><IonTitle>Game Lobby</IonTitle></IonToolbar></IonHeader>
       <IonContent className="ion-padding">
-        <IonText><h2>Room: {effectiveRoomCode}</h2><p>Share this code with friends to join.</p></IonText>
+        <IonText>
+          <h2>Room: {effectiveRoomCode}</h2>
+          <p>Share this code with friends to join.</p>
+        </IonText>
 
         <IonText><h3>Players ({members.length})</h3></IonText>
         <IonList>
@@ -142,7 +193,9 @@ const GameLobby: React.FC = () => {
             members.map((member) => (
               <IonItem key={member.id}>
                 <IonLabel>{member.username}{member.role === 'HOST' && ' 👑'}</IonLabel>
-                <IonChip color={member.role === 'HOST' ? 'primary' : 'medium'}>{member.role || 'PLAYER'}</IonChip>
+                <IonChip color={member.role === 'HOST' ? 'primary' : 'medium'}>
+                  {member.role || 'PLAYER'}
+                </IonChip>
               </IonItem>
             ))
           )}
