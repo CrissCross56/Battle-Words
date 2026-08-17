@@ -66,8 +66,7 @@ const MakeLobby: React.FC = () => {
         throw new Error('Failed to join room')
       }
 
-      const member = await joinResponse.json()
-      console.log('Joined room:', member)
+      await joinResponse.json()
 
       // Step 3: Update Zustand store
       setRoom(room.code)
