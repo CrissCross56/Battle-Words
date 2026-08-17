@@ -1,11 +1,6 @@
 // client/src/store/gameStore.ts
-// Zustand store for Battle-Words game state
-
 import { create } from 'zustand'
 
-// ============================================
-// TYPES
-// ============================================
 export interface Player {
   id: string
   username: string
@@ -14,52 +9,85 @@ export interface Player {
   score: number
 }
 
+export interface RoomMember {
+  id: string
+  username: string
+  role: 'HOST' | 'PLAYER'
+}
+
 interface GameState {
-  // === GAME STATE ===
+  // === ROOM STATE ===
   roomCode: string | null
+  roomMembers: RoomMember[]
+  
+  // === GAME STATE ===
   players: Player[]
   currentWord: string | null
+  scrambledWord: string | null
   scores: Record<string, number>
   gameStatus: 'waiting' | 'playing' | 'finished'
   round: number
   maxRounds: number
+  currentRound: number
+  
+  // === TIMER STATE ===
+  timer: number
+  isTimerActive: boolean
 
   // === ACTIONS ===
   setRoom: (code: string) => void
+  addRoomMember: (member: RoomMember) => void
+  setRoomMembers: (members: RoomMember[]) => void
+  
   addPlayer: (name: string) => void
   removePlayer: (name: string) => void
   setPlayers: (players: Player[]) => void
+  
   setCurrentWord: (word: string) => void
+  setScrambledWord: (word: string) => void
   updateScore: (player: string, points: number) => void
+  
   startGame: () => void
   nextRound: () => void
   resetGame: () => void
+  
+  setTimer: (seconds: number) => void
+  startTimer: () => void
+  stopTimer: () => void
+  resetTimer: () => void
+  
   setGameState: (state: Partial<GameState>) => void
 }
 
-// ============================================
-// INITIAL STATE
-// ============================================
 const initialState = {
   roomCode: null,
+  roomMembers: [],
   players: [],
   currentWord: null,
+  scrambledWord: null,
   scores: {},
   gameStatus: 'waiting' as const,
   round: 0,
   maxRounds: 10,
+  currentRound: 0,
+  timer: 30,
+  isTimerActive: false,
 }
 
-// ============================================
-// ZUSTAND STORE
-// ============================================
 export const useGameStore = create<GameState>()((set, get) => ({
   ...initialState,
 
-  // --- ACTIONS ---
-
+  // === ROOM ACTIONS ===
   setRoom: (code) => set({ roomCode: code }),
+  
+  addRoomMember: (member) =>
+    set((state) => ({
+      roomMembers: [...state.roomMembers, member],
+    })),
 
+  setRoomMembers: (members) => set({ roomMembers: members }),
+
+  // === PLAYER ACTIONS ===
   addPlayer: (name) =>
     set((state) => ({
       players: [
@@ -80,12 +108,23 @@ export const useGameStore = create<GameState>()((set, get) => ({
       const newPlayers = state.players.filter((p) => p.username !== name)
       const newScores = { ...state.scores }
       delete newScores[name]
-      return { players: newPlayers, scores: newScores }
+      return { 
+        players: newPlayers, 
+        scores: newScores,
+        roomMembers: newPlayers.map(p => ({ 
+          id: p.id, 
+          username: p.username, 
+          role: p.isHost ? 'HOST' : 'PLAYER' 
+        }))
+      }
     }),
 
   setPlayers: (players) => set({ players }),
 
+  // === GAME ACTIONS ===
   setCurrentWord: (word) => set({ currentWord: word }),
+  
+  setScrambledWord: (word) => set({ scrambledWord: word }),
 
   updateScore: (player, points) =>
     set((state) => ({
@@ -95,20 +134,34 @@ export const useGameStore = create<GameState>()((set, get) => ({
       },
     })),
 
-  startGame: () => set({ gameStatus: 'playing', round: 1 }),
+  startGame: () => set({ 
+    gameStatus: 'playing', 
+    round: 1, 
+    currentRound: 1,
+    timer: 30,
+    isTimerActive: true 
+  }),
 
   nextRound: () =>
     set((state) => ({
       round: state.round + 1,
+      currentRound: state.currentRound + 1,
       currentWord: null,
+      scrambledWord: null,
+      timer: 30,
+      isTimerActive: true,
     })),
 
   resetGame: () => set(initialState),
 
+  // === TIMER ACTIONS ===
+  setTimer: (seconds) => set({ timer: seconds }),
+  
+  startTimer: () => set({ isTimerActive: true }),
+  
+  stopTimer: () => set({ isTimerActive: false }),
+  
+  resetTimer: () => set({ timer: 30, isTimerActive: false }),
+
   setGameState: (state) => set(state),
 }))
-
-// ============================================
-// EXPORT THE STORE AS DEFAULT (for convenience)
-// ============================================
-export default useGameStore
