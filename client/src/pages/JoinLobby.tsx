@@ -1,6 +1,4 @@
 // client/src/pages/JoinLobby.tsx
-// Join an existing game lobby with API integration
-
 import { useState } from 'react'
 import {
   IonPage,
@@ -25,6 +23,7 @@ const JoinLobby: React.FC = () => {
   const [error, setError] = useState('')
 
   const setRoom = useGameStore((state) => state.setRoom)
+  const addRoomMember = useGameStore((state) => state.addRoomMember)
   const addPlayer = useGameStore((state) => state.addPlayer)
 
   const joinRoom = async () => {
@@ -51,9 +50,11 @@ const JoinLobby: React.FC = () => {
         throw new Error(errorData.message || 'Failed to join room')
       }
 
-      await response.json()
+      const member = await response.json()
+      console.log('Joined room:', member)
 
       setRoom(roomCode.trim().toUpperCase())
+      addRoomMember({ id: member.id, username: username.trim(), role: 'PLAYER' })
       addPlayer(username.trim())
 
       router.push(`/game-lobby/${roomCode.trim().toUpperCase()}`)
