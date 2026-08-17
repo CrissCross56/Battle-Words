@@ -258,6 +258,13 @@ router.get('/:gameId/status', async (req, res) => {
           gameId,
           roundNumber: updatedGame.currentRound
         }
+      },
+      select: {
+        id: true,
+        gameId: true,
+        roundNumber: true,
+        startedAt: true,
+        endedAt: true
       }
     })
 
