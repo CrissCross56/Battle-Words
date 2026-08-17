@@ -1,84 +1,123 @@
-import {IonPage, IonTitle} from '@ionic/react';
-import { useForm } from 'react-hook-form';
-import { useMutation, useQuery } from "@tanstack/react-query";
-import { Redirect } from 'react-router-dom';
+// client/src/pages/JoinLobby.tsx
+// Join an existing game lobby with API integration
 
-//function to get data on all games from the backend
-async function getAllGames(){
-    const res = await fetch("my api route goes here");
-    if(!res.ok) throw new Error("Something went wrong while getting the game data from the backend")
-    return res.json();
-}
-
-
-// Function to send data to the backend
-async function sendLobbyData(data: any){
-    const res = await fetch("localhost/:roomCode/start",{
-        method: "POST",
-        headers:{
-            "Content-Type": "application/json"
-        },
-        body: JSON.stringify(data)
-    })
-    if(!res.ok) throw new Error("Something went wrong while sending lobby data to the backend")
-        return res.json();
-}
-
+import { useState } from 'react'
+import {
+  IonPage,
+  IonHeader,
+  IonToolbar,
+  IonTitle,
+  IonContent,
+  IonItem,
+  IonLabel,
+  IonInput,
+  IonButton,
+  IonText,
+} from '@ionic/react'
+import { useIonRouter } from '@ionic/react'
+import { useGameStore } from '../store/gameStore'
 
 const JoinLobby: React.FC = () => {
-    const{
-        register,
-        handleSubmit,
-        reset,
-        watch,
-        formState: {errors, isSubmitting},
-    } = useForm({
-        defaultValues: {
-            userName: "",
-            lobbyCode: "",
-        }
-    })
+  const router = useIonRouter()
+  const [roomCode, setRoomCode] = useState('')
+  const [username, setUsername] = useState('')
+  const [isLoading, setIsLoading] = useState(false)
+  const [error, setError] = useState('')
 
-    // const onSubmit = async (data: any) => {
-    //     //replace with tanstack query to send data to backend and get response
-    //     console.log(data);
-    //     reset();
-    // }
+  const setRoom = useGameStore((state) => state.setRoom)
+  const addPlayer = useGameStore((state) => state.addPlayer)
 
-    const {data, isLoading, isError} = useQuery({
-        queryKey: ["games"],
-        queryFn: getAllGames,
-    })
+  const joinRoom = async () => {
+    if (!roomCode.trim() || !username.trim()) {
+      setError('Please enter both a room code and username')
+      return
+    }
 
-    const mutation = useMutation({
-    mutationFn: sendLobbyData,
-    onSuccess: () => {
-        // Common things to do here later:
-        // - queryClient.invalidateQueries({ queryKey: ["messages"] }) to refetch a list
-        // - show a toast, redirect, etc.
+    setIsLoading(true)
+    setError('')
 
-        return <Redirect to="/game-lobby" />;
-    },
-    });
+    try {
+      // Join the room via API
+      const response = await fetch(`http://localhost:3000/rooms/${roomCode.trim().toUpperCase()}/join`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          username: username.trim(),
+          role: 'PLAYER',
+        }),
+      })
 
-    const onSubmit = (data: any) => mutation.mutate(data);
+      if (!response.ok) {
+        const errorData = await response.json()
+        throw new Error(errorData.message || 'Failed to join room')
+      }
 
-    return (
-        <IonPage>
-            <IonTitle>Join Lobby</IonTitle>
-            
-            <form onSubmit={handleSubmit(onSubmit)}>
-                <label> Username: </label>
-                <input {...register("userName")} />
-                <label> Lobby Code: </label>
-                <input {...register("lobbyCode")} />
-                <button type="submit" disabled={isSubmitting}>
-                    Join Lobby
-                </button>
-            </form>
+      const member = await response.json()
+      console.log('Joined room:', member)
 
-        </IonPage>
-    )
+      // Update Zustand store
+      setRoom(roomCode.trim().toUpperCase())
+      addPlayer(username.trim())
+
+      // Navigate to the lobby
+      router.push(`/game-lobby/${roomCode.trim().toUpperCase()}`)
+
+    } catch (err) {
+      console.error('Error joining room:', err)
+      setError(err instanceof Error ? err.message : 'Failed to join room. Please check the room code.')
+    } finally {
+      setIsLoading(false)
+    }
+  }
+
+  return (
+    <IonPage>
+      <IonHeader>
+        <IonToolbar>
+          <IonTitle>Join Lobby</IonTitle>
+        </IonToolbar>
+      </IonHeader>
+
+      <IonContent className="ion-padding">
+        <IonText>
+          <h2>Join a Game</h2>
+          <p>Enter the room code and your username to join.</p>
+        </IonText>
+
+        <IonItem>
+          <IonLabel position="stacked">Room Code</IonLabel>
+          <IonInput
+            value={roomCode}
+            placeholder="Enter room code"
+            onIonInput={(e) => setRoomCode(e.detail.value?.toUpperCase() || '')}
+          />
+        </IonItem>
+
+        <IonItem>
+          <IonLabel position="stacked">Username</IonLabel>
+          <IonInput
+            value={username}
+            placeholder="Enter your username"
+            onIonInput={(e) => setUsername(e.detail.value || '')}
+          />
+        </IonItem>
+
+        {error && (
+          <IonText color="danger">
+            <p>{error}</p>
+          </IonText>
+        )}
+
+        <IonButton
+          expand="block"
+          onClick={joinRoom}
+          disabled={isLoading || !roomCode.trim() || !username.trim()}
+        >
+          {isLoading ? 'Joining...' : 'Join Lobby'}
+        </IonButton>
+      </IonContent>
+    </IonPage>
+  )
 }
 
-export default JoinLobby;
+export default JoinLobby
