@@ -4,6 +4,7 @@ import { useForm } from 'react-hook-form';
 import { useMutation } from "@tanstack/react-query";
 import { Redirect } from 'react-router';
 import { useState } from 'react';
+import { usePlayerStore } from "../store/gameStore";
 
 // Function to data to the backend
 async function startLobby(data: any) {
@@ -13,16 +14,15 @@ async function startLobby(data: any) {
             "Content-Type": "application/json"
         },
         body: JSON.stringify(data)
+        
     })
     if(!res.ok) throw new Error("Something went wrong while sending data to the backend")
         return res.json();
 }
 
 const MakeLobby: React.FC = () => {
+    
 
-    const [lobbyObject , setLobbyObject] = useState<any>({
-
-    });
 
     const{
         register,
@@ -56,29 +56,51 @@ const MakeLobby: React.FC = () => {
       // Common things to do here later:
       // - queryClient.invalidateQueries({ queryKey: ["messages"] }) to refetch a list
       // - show a toast, redirect, etc.
-      //take the data from the result of the mutation and set it to the lobbyObject state
-      console.log(a);
+      //console log a response for what got shown
+      
+      console.log(a.code);
+      
+      //consume the response and save it to the zustand
+      
       //navigate to the game lobby page after a successful send 
       return <Redirect to="/game-lobby" />;
     },
   });
 
-  const sendName = useMutation({
-    
-  })
 
-   const onSubmit = (data: any) => lobbyStart.mutate(data);
- 
+    const {isHost,setHost,userName,setUsername,numRounds,setNumRounds,roomCode,setRoomCode} = usePlayerStore()
+    // const [rounds, SetRounds] = useState(1);
+    // const [name, SetName] = useState("host");
+
+    const onSubmit = (data: any) =>{
+       
+        const dataObj = {
+            username: userName,
+            totalRounds: numRounds,
+            role: "PLAYER"
+        }
+        lobbyStart.mutate(dataObj);
+    }
+
+   
+    
+
+    
+    
+    
+
+   
+    
     return (
         <IonPage>
             <IonTitle><IonHeader>Make Lobby</IonHeader></IonTitle>
 
             <form onSubmit={handleSubmit(onSubmit)}>
                 <label> Username: </label>
-                <input {...register("userName")} />
+                <input onInput={(e)=>setUsername((e.target as HTMLInputElement).value)} {...register("userName")} />
                 <IonList>
                     <IonItem>
-                        <IonSelect placeholder="Select Number of Turns">
+                        <IonSelect onIonChange={(e)=>setNumRounds(e.detail.value)} placeholder="Select Number of Turns">
                             <IonSelectOption value="1">1</IonSelectOption>
                             <IonSelectOption value="2">2</IonSelectOption>
                             <IonSelectOption value="3">3</IonSelectOption>
@@ -87,12 +109,12 @@ const MakeLobby: React.FC = () => {
                         </IonSelect>
                     </IonItem>
                 </IonList>
-                <button type="submit" disabled={isSubmitting}>
+                <IonButton type="submit" disabled={isSubmitting}>
                     Make Lobby
-                </button>
+                </IonButton>
             </form>
 
-            <IonButton routerLink="/game-lobby">Go to Game Lobby</IonButton>
+            {/* <IonButton routerLink="/game-lobby">Go to Game Lobby</IonButton> */}
         </IonPage>
     )
 }
