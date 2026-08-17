@@ -6,7 +6,7 @@ const router = Router()
 
 router.post('/', async (req, res) => {
   try {
-    const { username, role } = req.body
+    const { username, role, totalRounds } = req.body
 
     if (typeof username !== 'string' || username.trim() === '') {
       return res.status(400).json({
@@ -17,6 +17,17 @@ router.post('/', async (req, res) => {
     if (role !== 'PLAYER' && role !== 'SPECTATOR') {
       return res.status(400).json({
         error: 'Invalid role'
+      })
+    }
+
+    if (
+      typeof totalRounds !== 'number' ||
+      !Number.isInteger(totalRounds) ||
+      totalRounds < 1 ||
+      totalRounds > 5
+    ) {
+      return res.status(400).json({
+        error: 'totalRounds must be an integer between 1 and 5'
       })
     }
 
@@ -36,7 +47,8 @@ router.post('/', async (req, res) => {
     const result = await prisma.$transaction(async tx => {
       const room = await tx.room.create({
         data: {
-          code: roomCode
+          code: roomCode,
+          totalRounds
         }
       })
 
@@ -54,6 +66,7 @@ router.post('/', async (req, res) => {
     res.status(201).json({
       id: result.room.id,
       code: result.room.code,
+      totalRounds: result.room.totalRounds,
       member: {
         id: result.member.id,
         username: result.member.username,
