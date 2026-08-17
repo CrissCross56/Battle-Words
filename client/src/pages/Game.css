@@ -19,10 +19,11 @@
   font-size: 1.5rem;
   font-weight: bold;
   text-transform: uppercase;
-  border: 2px solid #d3d6da;   /* Always visible */
+  border: 2px solid #d3d6da;
   background-color: #ffffff;
   border-radius: 4px;
   user-select: none;
+  transition: all 0.2s ease;
 }
 
 .cell-empty {
@@ -34,16 +35,273 @@
   background-color: #6aaa64;
   border-color: #6aaa64;
   color: white;
+  transform: scale(0.95);
+  animation: pop 0.2s ease;
 }
 
 .cell-yellow {
   background-color: #c9b458;
   border-color: #c9b458;
   color: white;
+  transform: scale(0.95);
+  animation: pop 0.2s ease;
 }
 
 .cell-gray {
   background-color: #787c7e;
   border-color: #787c7e;
   color: white;
+  transform: scale(0.95);
+  animation: pop 0.2s ease;
+}
+
+@keyframes pop {
+  0% { transform: scale(0.9); }
+  50% { transform: scale(1.05); }
+  100% { transform: scale(0.95); }
+}
+
+/* Scrambled Word Display */
+.scrambled-display {
+  text-align: center;
+  background: #f4f4f4;
+  padding: 0.75rem;
+  border-radius: 8px;
+  margin: 0.5rem 0;
+}
+
+.scrambled-word {
+  font-size: 2rem;
+  font-weight: bold;
+  letter-spacing: 4px;
+  color: #333;
+}
+
+/* Dual-Box UI */
+.letter-hint-container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  margin: 0.5rem 0;
+}
+
+.letter-box {
+  width: 60px;
+  height: 60px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: 2px solid #ccc;
+  border-radius: 8px;
+  background: rgba(0, 0, 0, 0.05);
+}
+
+.letter-box.upper {
+  opacity: 0.8;
+  font-size: 2rem;
+  font-weight: bold;
+  background: #fff;
+  border-color: #999;
+}
+
+.letter-box.upper .letter {
+  text-transform: uppercase;
+}
+
+.letter-box.lower {
+  margin-top: 4px;
+  background: transparent;
+  border: 2px solid #ddd;
+  overflow: hidden;
+  position: relative;
+  padding: 0;
+}
+
+.color-fill {
+  height: 100%;
+  background: #6aaa64;
+  transition: width 0.3s ease, background 0.3s ease;
+  position: absolute;
+  top: 0;
+  left: 0;
+}
+
+.color-fill.full {
+  width: 100% !important;
+  background: #6aaa64;
+}
+
+/* Game Info */
+.game-info {
+  text-align: center;
+  background: #f4f4f4;
+  padding: 0.5rem;
+  border-radius: 8px;
+  margin: 0.5rem 0;
+}
+
+/* Scores */
+.scores-container {
+  background: #f4f4f4;
+  padding: 0.5rem 1rem;
+  border-radius: 8px;
+}
+
+.player-score {
+  display: flex;
+  justify-content: space-between;
+  padding: 0.25rem 0;
+  border-bottom: 1px solid #e0e0e0;
+}
+
+.player-score:last-child {
+  border-bottom: none;
+}
+
+.score-value {
+  font-weight: bold;
+  color: #2e7d32;
+}
+
+/* Keyboard */
+.keyboard {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 6px;
+  margin-top: 0.5rem;
+}
+
+.keyboard-row {
+  display: flex;
+  gap: 6px;
+}
+
+.key {
+  min-width: 36px;
+  height: 48px;
+  padding: 0 6px;
+  border: none;
+  border-radius: 4px;
+  background-color: #d3d6da;
+  font-size: 0.9rem;
+  font-weight: bold;
+  text-transform: uppercase;
+  cursor: pointer;
+  transition: background 0.2s, transform 0.1s;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #1a1a1a;
+}
+
+.key:hover {
+  background-color: #bbb;
+}
+
+.key:active {
+  transform: scale(0.95);
+}
+
+.key-green {
+  background-color: #6aaa64;
+  color: white;
+}
+
+.key-yellow {
+  background-color: #c9b458;
+  color: white;
+}
+
+.key-gray {
+  background-color: #787c7e;
+  color: white;
+}
+
+.key-Enter,
+.key-Backspace {
+  min-width: 60px;
+  font-size: 0.8rem;
+}
+
+/* Responsive */
+@media (max-width: 480px) {
+  .cell {
+    width: 40px;
+    height: 40px;
+    font-size: 1.2rem;
+  }
+  .key {
+    min-width: 30px;
+    height: 40px;
+    font-size: 0.8rem;
+  }
+  .key-Enter,
+  .key-Backspace {
+    min-width: 45px;
+  }
+  .letter-box {
+    width: 50px;
+    height: 50px;
+  }
+  .letter-box.upper {
+    font-size: 1.5rem;
+  }
+  .scrambled-word {
+    font-size: 1.5rem;
+  }
+}
+
+/* Dark Mode */
+body.dark {
+  --ion-background-color: #121212;
+  --ion-text-color: #ffffff;
+  --ion-toolbar-background: #1e1e1e;
+  --ion-item-background: #1e1e1e;
+  --ion-card-background: #1e1e1e;
+  --ion-border-color: #2a2a2a;
+  --ion-color-light: #2a2a2a;
+}
+
+body.dark .cell {
+  background-color: #1e1e1e;
+  border-color: #3a3a3a;
+  color: #ffffff;
+}
+
+body.dark .cell-empty {
+  background-color: #1e1e1e;
+  border-color: #3a3a3a;
+}
+
+body.dark .game-grid {
+  background: #1a1a1a;
+}
+
+body.dark .game-info,
+body.dark .scores-container,
+body.dark .scrambled-display {
+  background: #1e1e1e;
+  color: #ffffff;
+}
+
+body.dark .scrambled-word {
+  color: #ffffff;
+}
+
+body.dark .key {
+  background-color: #3a3a3a;
+  color: #ffffff;
+}
+
+body.dark .key:hover {
+  background-color: #4a4a4a;
+}
+
+body.dark .player-score {
+  border-bottom-color: #2a2a2a;
+}
+
+body.dark .score-value {
+  color: #6aaa64;
 }
