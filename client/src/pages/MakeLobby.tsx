@@ -66,13 +66,18 @@ const MakeLobby: React.FC = () => {
   });
 
    //the below line is a hook that will get the isHost value from the zustand store, which will be set to true when the user creates a lobby and false when they join a lobby
-   const isHost = usePlayerStore((state) => state.lastSumbission?.isHost);
+//    const isHost = usePlayerStore((state) => state.lastSumbission?.isHost);
    //the same but for useername and room code
-   const userNameState = usePlayerStore((state) => state.lastSumbission?.userName);
-   const roomCodeState = usePlayerStore((state) => state.lastSumbission?.roomCode);
+//    const userNameState = usePlayerStore((state) => state.lastSumbission?.userName);
+//    const roomCodeState = usePlayerStore((state) => state.lastSumbission?.roomCode);
 
    const onSubmit = (data: any) => lobbyStart.mutate(data);
  
+    type FormValues = {
+        userName: string;
+        numberOfrounds: number;
+        isHost: boolean;
+    }
     return (
         <IonPage>
             <IonTitle><IonHeader>Make Lobby</IonHeader></IonTitle>

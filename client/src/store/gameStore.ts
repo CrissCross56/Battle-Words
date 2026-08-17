@@ -5,18 +5,43 @@ import { create } from "zustand"
 //then in their browser, we can store that information in the zustand store and then use it to send to the backend
 //when they play the game
 
-type FormData = {  
-    userName: string;
-    roomCode: string;
-    isHost: boolean;
-}
+
+
+// type PlayerStore = {
+//     formData: FormData | null;
+//     setFormData: (data: FormData) => void;
+//     setUserName: 
+
+// }
 
 type PlayerStore = {
-    formData: FormData | null;
-    setFormData: (data: FormData) => void;
+    userName: string,
+    setUsername: (newUserName: string) => void,
+    numRounds: number,
+    setNumRounds: (numR : number) => void,
+    isHost: boolean,
+    setHost: (hostBool: boolean) => void,
+    roomCode: string,
+    setRoomCode: (rCode: string) => void
+
 }
 
 export const usePlayerStore = create<PlayerStore>((set) => ({
-    formData: null,
-    setFormData: (data: FormData) => set({ formData: data }),
+    userName: "",
+    setUsername: (newUserName) => set({
+        userName: newUserName
+    }),
+    numRounds: 1,
+    setNumRounds: (numR) => set({
+        numRounds: numR
+    }),
+    isHost: false,
+    setHost: (hostBool) => set({
+        isHost: hostBool
+    }),
+    roomCode: "",
+    setRoomCode: (rCode) => set({
+        roomCode: rCode
+    })
+
 }))
