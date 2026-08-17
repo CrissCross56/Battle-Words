@@ -58,7 +58,7 @@ const MakeLobby: React.FC = () => {
       // - show a toast, redirect, etc.
       //console log a response for what got shown
       
-      console.log(a);
+      console.log(a.code);
       
       //consume the response and save it to the zustand
       
