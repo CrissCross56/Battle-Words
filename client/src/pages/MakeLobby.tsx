@@ -1,6 +1,4 @@
 // client/src/pages/MakeLobby.tsx
-// Create a new game lobby with API integration
-
 import { useState } from 'react'
 import {
   IonPage,
@@ -27,7 +25,9 @@ const MakeLobby: React.FC = () => {
   const [error, setError] = useState('')
 
   const setRoom = useGameStore((state) => state.setRoom)
+  const addRoomMember = useGameStore((state) => state.addRoomMember)
   const addPlayer = useGameStore((state) => state.addPlayer)
+  const setGameState = useGameStore((state) => state.setGameState)
 
   const createRoom = async () => {
     if (!username.trim()) {
@@ -66,13 +66,16 @@ const MakeLobby: React.FC = () => {
         throw new Error('Failed to join room')
       }
 
-      await joinResponse.json()
+      const member = await joinResponse.json()
+      console.log('Joined room:', member)
 
       // Step 3: Update Zustand store
       setRoom(room.code)
+      addRoomMember({ id: member.id, username: username.trim(), role: 'HOST' })
       addPlayer(username.trim())
+      setGameState({ maxRounds: totalRounds })
 
-      // Step 4: Navigate to the lobby
+      // Step 4: Navigate to lobby
       router.push(`/game-lobby/${room.code}`)
 
     } catch (err) {
