@@ -37,7 +37,6 @@ const JoinLobby: React.FC = () => {
     setError('')
 
     try {
-      // Join the room via API
       const response = await fetch(`http://localhost:3000/rooms/${roomCode.trim().toUpperCase()}/join`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -52,14 +51,11 @@ const JoinLobby: React.FC = () => {
         throw new Error(errorData.message || 'Failed to join room')
       }
 
-      const member = await response.json()
-      console.log('Joined room:', member)
+      await response.json()
 
-      // Update Zustand store
       setRoom(roomCode.trim().toUpperCase())
       addPlayer(username.trim())
 
-      // Navigate to the lobby
       router.push(`/game-lobby/${roomCode.trim().toUpperCase()}`)
 
     } catch (err) {
