@@ -1,5 +1,5 @@
 // client/src/pages/Game.tsx
-// Updated to use POST for game status polling
+// Updated to use GET /games/:gameId/status for polling
 
 import { useState, useEffect } from 'react'
 import {
@@ -37,6 +37,7 @@ const Game: React.FC = () => {
   const [currentRow, setCurrentRow] = useState(0)
   const [currentCol, setCurrentCol] = useState(0)
   const [isLoading, setIsLoading] = useState(true)
+  const [gameId, setGameId] = useState<string | null>(null)
 
   // Dual-box UI state
   const [currentLetter, setCurrentLetter] = useState('')
@@ -55,23 +56,21 @@ const Game: React.FC = () => {
   const updateScore = useGameStore((state) => state.updateScore)
   const setGameState = useGameStore((state) => state.setGameState)
 
-  // Poll game status using POST
+  // Poll game status using GET /games/:gameId/status
   useEffect(() => {
     const fetchGameStatus = async () => {
-      if (!roomCode) return
+      if (!gameId) return
 
       try {
-        const response = await fetch(`http://localhost:3000/games/${roomCode}/status`, {
-          method: 'POST',
+        const response = await fetch(`http://localhost:3000/games/${gameId}/status`, {
+          method: 'GET',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ roomCode }),
         })
 
         if (response.ok) {
           const data = await response.json()
           console.log('Game status update:', data)
 
-          // Update store with latest game state
           setGameState({
             currentWord: data.currentWord,
             scrambledWord: data.scrambledWord,
@@ -81,7 +80,6 @@ const Game: React.FC = () => {
             gameStatus: data.status?.toLowerCase() || 'playing',
           })
 
-          // Update scores if available
           if (data.players) {
             data.players.forEach((p: any) => {
               if (p.score !== undefined) {
@@ -97,12 +95,12 @@ const Game: React.FC = () => {
       }
     }
 
-    if (roomCode) {
+    if (gameId) {
       fetchGameStatus()
       const interval = setInterval(fetchGameStatus, 3000)
       return () => clearInterval(interval)
     }
-  }, [roomCode, setGameState, updateScore, round, maxRounds])
+  }, [gameId, setGameState, updateScore, round, maxRounds])
 
   // Initialize grid
   useEffect(() => {
@@ -112,7 +110,6 @@ const Game: React.FC = () => {
     setColors(emptyColors)
   }, [])
 
-  // Handle keyboard input
   const handleLetter = (letter: string) => {
     if (letter === 'Enter') {
       const guess = guesses[currentRow].join('')
@@ -146,7 +143,6 @@ const Game: React.FC = () => {
       setGuesses(newGuesses)
       setCurrentCol(currentCol + 1)
       setCurrentLetter(letter)
-      // Simulate dual-box feedback
       const random = Math.random()
       if (random < 0.33) setLetterFeedback('left')
       else if (random < 0.66) setLetterFeedback('right')
@@ -219,7 +215,6 @@ const Game: React.FC = () => {
 
       <IonContent className="ion-padding">
         <IonGrid>
-          {/* Game Grid */}
           <IonRow className="ion-justify-content-center">
             <IonCol size="12" sizeMd="8" sizeLg="6">
               <div className="game-grid">
@@ -238,7 +233,6 @@ const Game: React.FC = () => {
             </IonCol>
           </IonRow>
 
-          {/* Dual-Box UI */}
           <IonRow className="ion-justify-content-center ion-margin-top">
             <IonCol size="12" sizeMd="8" sizeLg="6">
               <div className="letter-hint-container">
@@ -259,7 +253,6 @@ const Game: React.FC = () => {
             </IonCol>
           </IonRow>
 
-          {/* Scrambled Word Display */}
           <IonRow className="ion-justify-content-center ion-margin-top">
             <IonCol size="12" sizeMd="8" sizeLg="6">
               <div className="scrambled-display">
@@ -271,7 +264,6 @@ const Game: React.FC = () => {
             </IonCol>
           </IonRow>
 
-          {/* Round & Timer */}
           <IonRow className="ion-justify-content-center ion-margin-top">
             <IonCol size="12" sizeMd="8" sizeLg="6">
               <div className="game-info">
@@ -283,7 +275,6 @@ const Game: React.FC = () => {
             </IonCol>
           </IonRow>
 
-          {/* Scores */}
           <IonRow className="ion-justify-content-center ion-margin-top">
             <IonCol size="12" sizeMd="8" sizeLg="6">
               <div className="scores-container">
@@ -302,7 +293,6 @@ const Game: React.FC = () => {
             </IonCol>
           </IonRow>
 
-          {/* Keyboard */}
           <IonRow className="ion-justify-content-center ion-margin-top">
             <IonCol size="12" sizeMd="8" sizeLg="6">
               <div className="keyboard">
@@ -323,7 +313,6 @@ const Game: React.FC = () => {
             </IonCol>
           </IonRow>
 
-          {/* Go Back Button */}
           <IonRow className="ion-justify-content-center ion-margin-top">
             <IonCol size="12" sizeMd="8" sizeLg="6">
               <IonButton expand="block" color="medium" onClick={goBack}>
