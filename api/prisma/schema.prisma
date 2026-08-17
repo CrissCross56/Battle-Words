@@ -7,9 +7,10 @@ datasource db {
 }
 
 model Room {
-  id        String   @id @default(cuid())
-  code      String   @unique
-  createdAt DateTime @default(now())
+  id          String   @id @default(cuid())
+  code        String   @unique
+  totalRounds Int
+  createdAt   DateTime @default(now())
 
   members RoomMember[]
   games   Game[]

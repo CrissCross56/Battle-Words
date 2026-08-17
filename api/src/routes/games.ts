@@ -258,6 +258,13 @@ router.get('/:gameId/status', async (req, res) => {
           gameId,
           roundNumber: updatedGame.currentRound
         }
+      },
+      select: {
+        id: true,
+        gameId: true,
+        roundNumber: true,
+        startedAt: true,
+        endedAt: true
       }
     })
 
@@ -279,18 +286,6 @@ router.get('/:gameId/status', async (req, res) => {
 router.post('/:roomCode/start', async (req, res) => {
   try {
     const { roomCode } = req.params
-    const { totalRounds } = req.body
-
-    if (
-      typeof totalRounds !== 'number' ||
-      !Number.isInteger(totalRounds) ||
-      totalRounds < 1 ||
-      totalRounds > 5
-    ) {
-      return res.status(400).json({
-        error: 'totalRounds must be an integer between 1 and 5'
-      })
-    }
 
     const room = await prisma.room.findUnique({
       where: {
@@ -355,7 +350,7 @@ router.post('/:roomCode/start', async (req, res) => {
         data: {
           roomId: room.id,
           currentRound: 1,
-          totalRounds
+          totalRounds: room.totalRounds
         }
       })
 
