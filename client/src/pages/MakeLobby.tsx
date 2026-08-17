@@ -4,6 +4,7 @@ import { useForm } from 'react-hook-form';
 import { useMutation } from "@tanstack/react-query";
 import { Redirect } from 'react-router';
 import { useState } from 'react';
+import { usePlayerStore } from "../store/gameStore";
 
 // Function to data to the backend
 async function startLobby(data: any) {
@@ -13,13 +14,14 @@ async function startLobby(data: any) {
             "Content-Type": "application/json"
         },
         body: JSON.stringify(data)
+        
     })
     if(!res.ok) throw new Error("Something went wrong while sending data to the backend")
         return res.json();
 }
 
 const MakeLobby: React.FC = () => {
-
+    
     const [lobbyObject , setLobbyObject] = useState<any>({
 
     });
@@ -63,9 +65,11 @@ const MakeLobby: React.FC = () => {
     },
   });
 
-  const sendName = useMutation({
-    
-  })
+   //the below line is a hook that will get the isHost value from the zustand store, which will be set to true when the user creates a lobby and false when they join a lobby
+   const isHost = usePlayerStore((state) => state.lastSumbission?.isHost);
+   //the same but for useername and room code
+   const userNameState = usePlayerStore((state) => state.lastSumbission?.userName);
+   const roomCodeState = usePlayerStore((state) => state.lastSumbission?.roomCode);
 
    const onSubmit = (data: any) => lobbyStart.mutate(data);
  

@@ -5,18 +5,18 @@ import { create } from "zustand"
 //then in their browser, we can store that information in the zustand store and then use it to send to the backend
 //when they play the game
 
-type PlayerData = {  
+type FormData = {  
     userName: string;
     roomCode: string;
-
+    isHost: boolean;
 }
 
 type PlayerStore = {
-    lastSumbission: PlayerData | null;
-    setLastSubmission: (data: PlayerData) => void;
+    formData: FormData | null;
+    setFormData: (data: FormData) => void;
 }
 
 export const usePlayerStore = create<PlayerStore>((set) => ({
-    lastSumbission: null,
-    setLastSubmission: (data: PlayerData) => set({ lastSumbission: data }),
+    formData: null,
+    setFormData: (data: FormData) => set({ formData: data }),
 }))
