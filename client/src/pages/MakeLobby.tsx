@@ -39,10 +39,11 @@ const MakeLobby: React.FC = () => {
     setError('')
 
     try {
-      // Step 1: Create the room
+      // ✅ Step 1: Backend creates the room and generates the room code
       const roomResponse = await fetch('http://localhost:3000/rooms', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
+        // No body needed — backend generates the code
       })
 
       if (!roomResponse.ok) {
@@ -50,10 +51,14 @@ const MakeLobby: React.FC = () => {
       }
 
       const room = await roomResponse.json()
-      console.log('Room created:', room)
+      console.log('Room created by backend:', room)
 
-      // Step 2: Join the room as host
-      const joinResponse = await fetch(`http://localhost:3000/rooms/${room.code}/join`, {
+      // ✅ Step 2: Use the room code from the backend response
+      const roomCode = room.code
+      console.log('Room code from backend:', roomCode)
+
+      // ✅ Step 3: Join the room as host
+      const joinResponse = await fetch(`http://localhost:3000/rooms/${roomCode}/join`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
@@ -69,14 +74,14 @@ const MakeLobby: React.FC = () => {
       const member = await joinResponse.json()
       console.log('Joined room:', member)
 
-      // Step 3: Update Zustand store
-      setRoom(room.code)
+      // ✅ Step 4: Update Zustand store with the backend-generated code
+      setRoom(roomCode)
       addRoomMember({ id: member.id, username: username.trim(), role: 'HOST' })
       addPlayer(username.trim())
       setGameState({ maxRounds: totalRounds })
 
-      // Step 4: Navigate to lobby
-      router.push(`/game-lobby/${room.code}`)
+      // ✅ Step 5: Navigate to lobby with the correct code
+      router.push(`/game-lobby/${roomCode}`)
 
     } catch (err) {
       console.error('Error creating room:', err)
