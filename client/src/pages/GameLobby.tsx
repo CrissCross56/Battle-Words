@@ -17,7 +17,8 @@ import {
   IonSelect,
   IonSelectOption,
 } from '@ionic/react'
-import { useIonRouter, useParams } from '@ionic/react'
+import { useIonRouter } from '@ionic/react'
+import { useParams } from 'react-router-dom'
 import { useGameStore } from '../store/gameStore'
 
 interface Player {
@@ -45,8 +46,6 @@ const GameLobby: React.FC = () => {
 
   const fetchRoomStatus = async () => {
     try {
-      // TODO: Replace with actual API call to get room status
-      // For now, we'll use the store data
       console.log('Fetching room status for:', roomCode)
     } catch (err) {
       console.error('Error fetching room status:', err)
@@ -71,7 +70,6 @@ const GameLobby: React.FC = () => {
       const game = await response.json()
       console.log('Game started:', game)
 
-      // Navigate to game page
       router.push(`/game/${roomCode}`)
 
     } catch (err) {
@@ -99,7 +97,6 @@ const GameLobby: React.FC = () => {
         <IonText>
           <h3>Players</h3>
           <IonList>
-            {/* This will be populated from the store/API later */}
             <IonItem>
               <IonLabel>Host (You)</IonLabel>
               <IonChip color="primary">Host</IonChip>
