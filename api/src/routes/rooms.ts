@@ -6,6 +6,20 @@ const router = Router()
 
 router.post('/', async (req, res) => {
   try {
+    const { username, role } = req.body
+
+    if (typeof username !== 'string' || username.trim() === '') {
+      return res.status(400).json({
+        error: 'Username is required'
+      })
+    }
+
+    if (role !== 'PLAYER' && role !== 'SPECTATOR') {
+      return res.status(400).json({
+        error: 'Invalid role'
+      })
+    }
+
     let roomCode: string
     let existingRoom
 
@@ -19,15 +33,33 @@ router.post('/', async (req, res) => {
       })
     } while (existingRoom)
 
-    const room = await prisma.room.create({
-      data: {
-        code: roomCode
-      }
+    const result = await prisma.$transaction(async tx => {
+      const room = await tx.room.create({
+        data: {
+          code: roomCode
+        }
+      })
+
+      const member = await tx.roomMember.create({
+        data: {
+          username: username.trim(),
+          role,
+          roomId: room.id
+        }
+      })
+
+      return { room, member }
     })
 
     res.status(201).json({
-      id: room.id,
-      code: room.code
+      id: result.room.id,
+      code: result.room.code,
+      member: {
+        id: result.member.id,
+        username: result.member.username,
+        role: result.member.role,
+        roomId: result.member.roomId
+      }
     })
   } catch (error) {
     console.error(error)
