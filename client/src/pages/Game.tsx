@@ -1,6 +1,4 @@
 // client/src/pages/Game.tsx
-// Updated to use GET /games/:gameId/status for polling
-
 import { useState, useEffect } from 'react'
 import {
   IonPage,
@@ -37,13 +35,13 @@ const Game: React.FC = () => {
   const [currentRow, setCurrentRow] = useState(0)
   const [currentCol, setCurrentCol] = useState(0)
   const [isLoading, setIsLoading] = useState(true)
-  const [gameId, setGameId] = useState<string | null>(null)
 
   // Dual-box UI state
   const [currentLetter, setCurrentLetter] = useState('')
   const [letterFeedback, setLetterFeedback] = useState<'left' | 'right' | 'correct' | null>(null)
 
   // Game state from store
+  const gameId = useGameStore((state) => state.gameId)
   const currentWord = useGameStore((state) => state.currentWord)
   const scrambledWord = useGameStore((state) => state.scrambledWord)
   const players = useGameStore((state) => state.players)
@@ -99,6 +97,8 @@ const Game: React.FC = () => {
       fetchGameStatus()
       const interval = setInterval(fetchGameStatus, 3000)
       return () => clearInterval(interval)
+    } else {
+      setIsLoading(false)
     }
   }, [gameId, setGameState, updateScore, round, maxRounds])
 

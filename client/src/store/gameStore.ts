@@ -19,7 +19,8 @@ interface GameState {
   // === ROOM STATE ===
   roomCode: string | null
   roomMembers: RoomMember[]
-  
+  gameId: string | null  // ✅ Added: store gameId for API calls
+
   // === GAME STATE ===
   players: Player[]
   currentWord: string | null
@@ -29,39 +30,41 @@ interface GameState {
   round: number
   maxRounds: number
   currentRound: number
-  
+
   // === TIMER STATE ===
   timer: number
   isTimerActive: boolean
 
   // === ACTIONS ===
   setRoom: (code: string) => void
+  setGameId: (id: string) => void  // ✅ New: store gameId
   addRoomMember: (member: RoomMember) => void
   setRoomMembers: (members: RoomMember[]) => void
-  
+
   addPlayer: (name: string) => void
   removePlayer: (name: string) => void
   setPlayers: (players: Player[]) => void
-  
+
   setCurrentWord: (word: string) => void
   setScrambledWord: (word: string) => void
   updateScore: (player: string, points: number) => void
-  
+
   startGame: () => void
   nextRound: () => void
   resetGame: () => void
-  
+
   setTimer: (seconds: number) => void
   startTimer: () => void
   stopTimer: () => void
   resetTimer: () => void
-  
+
   setGameState: (state: Partial<GameState>) => void
 }
 
 const initialState = {
   roomCode: null,
   roomMembers: [],
+  gameId: null,
   players: [],
   currentWord: null,
   scrambledWord: null,
@@ -79,7 +82,9 @@ export const useGameStore = create<GameState>()((set, get) => ({
 
   // === ROOM ACTIONS ===
   setRoom: (code) => set({ roomCode: code }),
-  
+
+  setGameId: (id) => set({ gameId: id }),
+
   addRoomMember: (member) =>
     set((state) => ({
       roomMembers: [...state.roomMembers, member],
@@ -108,14 +113,14 @@ export const useGameStore = create<GameState>()((set, get) => ({
       const newPlayers = state.players.filter((p) => p.username !== name)
       const newScores = { ...state.scores }
       delete newScores[name]
-      return { 
-        players: newPlayers, 
+      return {
+        players: newPlayers,
         scores: newScores,
-        roomMembers: newPlayers.map(p => ({ 
-          id: p.id, 
-          username: p.username, 
-          role: p.isHost ? 'HOST' : 'PLAYER' 
-        }))
+        roomMembers: newPlayers.map((p) => ({
+          id: p.id,
+          username: p.username,
+          role: p.isHost ? 'HOST' : 'PLAYER',
+        })),
       }
     }),
 
@@ -123,7 +128,7 @@ export const useGameStore = create<GameState>()((set, get) => ({
 
   // === GAME ACTIONS ===
   setCurrentWord: (word) => set({ currentWord: word }),
-  
+
   setScrambledWord: (word) => set({ scrambledWord: word }),
 
   updateScore: (player, points) =>
@@ -134,13 +139,14 @@ export const useGameStore = create<GameState>()((set, get) => ({
       },
     })),
 
-  startGame: () => set({ 
-    gameStatus: 'playing', 
-    round: 1, 
-    currentRound: 1,
-    timer: 30,
-    isTimerActive: true 
-  }),
+  startGame: () =>
+    set({
+      gameStatus: 'playing',
+      round: 1,
+      currentRound: 1,
+      timer: 30,
+      isTimerActive: true,
+    }),
 
   nextRound: () =>
     set((state) => ({
@@ -156,11 +162,11 @@ export const useGameStore = create<GameState>()((set, get) => ({
 
   // === TIMER ACTIONS ===
   setTimer: (seconds) => set({ timer: seconds }),
-  
+
   startTimer: () => set({ isTimerActive: true }),
-  
+
   stopTimer: () => set({ isTimerActive: false }),
-  
+
   resetTimer: () => set({ timer: 30, isTimerActive: false }),
 
   setGameState: (state) => set(state),

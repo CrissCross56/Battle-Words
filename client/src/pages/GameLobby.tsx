@@ -1,6 +1,4 @@
 // client/src/pages/GameLobby.tsx
-// Updated to use GET /games/:gameId/status for polling
-
 import { useState, useEffect } from 'react'
 import {
   IonPage,
@@ -31,68 +29,49 @@ const GameLobby: React.FC = () => {
   const [members, setMembers] = useState<any[]>([])
   const [isLoading, setIsLoading] = useState(true)
   const [isHost, setIsHost] = useState(false)
-  const [gameId, setGameId] = useState<string | null>(null)
 
   const roomCodeFromStore = useGameStore((state) => state.roomCode)
   const roomMembers = useGameStore((state) => state.roomMembers)
   const players = useGameStore((state) => state.players)
+  const gameId = useGameStore((state) => state.gameId)
+  const setGameId = useGameStore((state) => state.setGameId)
   const setGameState = useGameStore((state) => state.setGameState)
 
   const effectiveRoomCode = roomCode || roomCodeFromStore
 
-  // Poll for room members
+  // Poll for game status using gameId
   useEffect(() => {
-    const fetchRoomMembers = async () => {
-      if (!effectiveRoomCode) return
+    const fetchGameStatus = async () => {
+      if (!gameId) return
 
       try {
-        // If we have a gameId, use the game status endpoint
-        if (gameId) {
-          const response = await fetch(`http://localhost:3000/games/${gameId}/status`, {
-            method: 'GET',
-            headers: { 'Content-Type': 'application/json' },
-          })
+        const response = await fetch(`http://localhost:3000/games/${gameId}/status`, {
+          method: 'GET',
+          headers: { 'Content-Type': 'application/json' },
+        })
 
-          if (response.ok) {
-            const data = await response.json()
-            console.log('Game status:', data)
-
-            if (data.players) {
-              const formattedMembers = data.players.map((p: any) => ({
-                id: p.id,
-                username: p.username,
-                role: p.role || 'PLAYER'
-              }))
-              setMembers(formattedMembers)
-              setIsHost(formattedMembers.some((m: any) => m.role === 'HOST'))
-            }
-
-            setGameState({
-              currentWord: data.currentWord,
-              scrambledWord: data.scrambledWord,
-              round: data.currentRound || 0,
-              maxRounds: data.totalRounds || 3,
-              timer: data.timer || 30,
-              gameStatus: data.status?.toLowerCase() || 'waiting'
-            })
-            return
-          }
-        }
-
-        // Fallback: fetch room members directly (if endpoint exists)
-        const response = await fetch(`http://localhost:3000/rooms/${effectiveRoomCode}`)
         if (response.ok) {
-          const roomData = await response.json()
-          if (roomData.members) {
-            setMembers(roomData.members)
-            setIsHost(roomData.members.some((m: any) => m.role === 'HOST'))
+          const data = await response.json()
+          console.log('Game status:', data)
+
+          if (data.players) {
+            const formattedMembers = data.players.map((p: any) => ({
+              id: p.id,
+              username: p.username,
+              role: p.role || 'PLAYER'
+            }))
+            setMembers(formattedMembers)
+            setIsHost(formattedMembers.some((m: any) => m.role === 'HOST'))
           }
-        } else {
-          // Fallback to store data
-          const storeMembers = roomMembers.length > 0 ? roomMembers :
-            players.map(p => ({ id: p.id, username: p.username, role: p.isHost ? 'HOST' : 'PLAYER' }))
-          setMembers(storeMembers)
-          setIsHost(storeMembers.some((m: any) => m.role === 'HOST'))
+
+          setGameState({
+            currentWord: data.currentWord,
+            scrambledWord: data.scrambledWord,
+            round: data.currentRound || 0,
+            maxRounds: data.totalRounds || 3,
+            timer: data.timer || 30,
+            gameStatus: data.status?.toLowerCase() || 'waiting'
+          })
         }
       } catch (err) {
         console.error('Polling error:', err)
@@ -101,10 +80,20 @@ const GameLobby: React.FC = () => {
       }
     }
 
-    fetchRoomMembers()
-    const interval = setInterval(fetchRoomMembers, 3000)
-    return () => clearInterval(interval)
-  }, [effectiveRoomCode, gameId, roomMembers, players, setGameState])
+    // If we have gameId, poll that. Otherwise, try to fetch room members.
+    if (gameId) {
+      fetchGameStatus()
+      const interval = setInterval(fetchGameStatus, 3000)
+      return () => clearInterval(interval)
+    } else {
+      // Fallback: use store data
+      const storeMembers = roomMembers.length > 0 ? roomMembers :
+        players.map(p => ({ id: p.id, username: p.username, role: p.isHost ? 'HOST' : 'PLAYER' }))
+      setMembers(storeMembers)
+      setIsHost(storeMembers.some((m: any) => m.role === 'HOST'))
+      setIsLoading(false)
+    }
+  }, [gameId, roomMembers, players, setGameState])
 
   // Start game
   const startGame = async () => {
@@ -131,7 +120,7 @@ const GameLobby: React.FC = () => {
       const game = await response.json()
       console.log('Game started:', game)
 
-      // Store the gameId for polling
+      // Store gameId for polling
       if (game.id) {
         setGameId(game.id)
       }
