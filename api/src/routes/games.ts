@@ -796,4 +796,33 @@ router.post('/:gameId/unscramble-guess', async (req, res) => {
   }
 })
 
+router.get('/:gameId/scoreboard', async (req, res) => {
+  const { gameId } = req.params
+
+  const players = await prisma.gamePlayer.findMany({
+    where: {
+      gameId
+    },
+    select: {
+      totalPoints: true,
+      member: {
+        select: {
+          username: true
+        }
+      }
+    },
+    orderBy: {
+      totalPoints: 'desc'
+    }
+  })
+
+  res.json({
+    gameId,
+    scoreboard: players.map(player => ({
+      username: player.member.username,
+      score: player.totalPoints
+    }))
+  })
+})
+
 export default router
