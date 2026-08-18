@@ -1,5 +1,5 @@
 // src/pages/HowToPlay.tsx
-// This page displays the game rules and instructions for new players.
+// Battle-Words How To Play — Based on Hao-Bin's official game rules
 
 import {
   IonButton,
@@ -12,10 +12,11 @@ import {
   IonList,
   IonItem,
   IonLabel,
+  IonChip,
 } from '@ionic/react'
 import { useIonRouter } from '@ionic/react'
 
-const HowToPlay = () => {
+const HowToPlay: React.FC = () => {
   const router = useIonRouter()
 
   const goBack = () => {
@@ -33,19 +34,21 @@ const HowToPlay = () => {
       <IonContent className="ion-padding">
         <IonText>
           <h2>Battle-Words</h2>
-          <p>A realtime multiplayer word game.</p>
+          <p>A realtime multiplayer word game in two phases.</p>
         </IonText>
 
+        {/* ===== OBJECTIVE ===== */}
         <IonText>
-          <h3>Objective</h3>
+          <h3>🎯 Objective</h3>
           <p>
-            Be the first player to reach the target score by finding letters and unscrambling words faster
-            than your opponents.
+            Be the first player to reach the target score by unscrambling words
+            and guessing the correct answer faster than your opponents.
           </p>
         </IonText>
 
+        {/* ===== HOW IT WORKS ===== */}
         <IonText>
-          <h3>How It Works</h3>
+          <h3>📋 How It Works</h3>
           <IonList>
             <IonItem>
               <IonLabel>
@@ -55,37 +58,48 @@ const HowToPlay = () => {
             </IonItem>
             <IonItem>
               <IonLabel>
-                <strong>2. Wait for the Host to Start</strong>
-                <p>The host starts the game when all players are ready.</p>
+                <strong>2. Host Sets the Rounds</strong>
+                <p>The host chooses between 1–5 rounds before starting the game.</p>
               </IonLabel>
             </IonItem>
             <IonItem>
               <IonLabel>
-                <strong>3. Find the Letters</strong>
+                <strong>3. Phase 1 — Find the Letters</strong>
                 <p>
-                  The game shows you a scrambled word, but you don't have to guess the whole word at once.
-                  Instead, you guess individual letters. The closer your guess is to the correct letter,
-                  the brighter the color feedback. Use the color clues to find each letter in order.
-                  Each correct letter you find gets locked in, making the unscramble easier.
+                  The game slects a scrambled 5‑letter word. You have up to <strong>5 guesses</strong> to find the correct letters for that box.
+                  As you type each letter, a <strong>dual‑box</strong> below the grid gives you color feedback, letting you know how far you are from the correct letter:
+                </p>
+                <ul>
+                  <li>TEMP <strong>left</strong> of the correct letter.</li>
+                  <li>TEMP <strong>right</strong> of the correct letter.</li>
+                  <li>TEMP!</li>
+                </ul>
+                <p>
+                  Use this feedback to narrow down each letter and solve the scramble as fast as possible.
                 </p>
               </IonLabel>
             </IonItem>
             <IonItem>
               <IonLabel>
-                <strong>4. Unscramble the Word</strong>
+                <strong>4. Phase 2 — Guess the Word</strong>
                 <p>
-                  Once all the letters are revealed, unscramble them to form the correct word.
-                  This plays like a classic word unscramble game — arrange the letters in the right order
-                  to match the target word. The faster you unscramble, the more points you earn.
+                  Once you solve the scramble, a <strong>30‑second timer</strong> starts. You must now guess the original English word.
+                </p>
+                <ul>
+                  <li>✅ Correct guess → +1 point</li>
+                  <li>❌ Wrong guess or time expires → 0 points</li>
+                </ul>
+                <p>
+                  The game pauses after each word to let other players submit their answers before the next round begins.
                 </p>
               </IonLabel>
             </IonItem>
             <IonItem>
               <IonLabel>
-                <strong>5. The Game Pauses After Each Word</strong>
+                <strong>5. Round End & Next Round</strong>
                 <p>
-                  After a word is unscrambled, the game pauses briefly to allow other players to submit their answers.
-                  Then the next word loads automatically.
+                  The round ends when all players have finished or the timer runs out.
+                  A new scrambled word appears for the next round.
                 </p>
               </IonLabel>
             </IonItem>
@@ -93,23 +107,21 @@ const HowToPlay = () => {
               <IonLabel>
                 <strong>6. Win the Game</strong>
                 <p>
-                  The first player to reach the target score wins the game.
-                  A leaderboard is displayed showing the final rankings.
-                </p>
-                <p>
-                  <em>Note: Point system details are still being finalized.</em>
+                  The player with the most points after all rounds wins!
+                  A final scoreboard shows the rankings.
                 </p>
               </IonLabel>
             </IonItem>
           </IonList>
         </IonText>
 
+        {/* ===== TIPS ===== */}
         <IonText>
-          <h3>Tips</h3>
+          <h3>💡 Tips</h3>
           <ul>
-            <li>Think fast — the faster you find letters and unscramble, the more points you earn.</li>
-            <li>Pay attention to color feedback — it tells you how close your guess is to the correct letter.</li>
-            <li>Each correct letter you find gets locked in, so focus on one letter at a time.</li>
+            <li>Use the color feedback to find each letter faster — the left/right fill tells you exactly where the correct letter is.</li>
+            <li>Be quick in Phase 2 — the 30‑second timer is tight and there's no second chance.</li>
+            <li>Communicate with your team if you're playing in a group — sharing letter positions can help everyone.</li>
           </ul>
         </IonText>
 
