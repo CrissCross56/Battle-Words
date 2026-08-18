@@ -21,7 +21,8 @@ async function startLobby(data: any) {
 }
 
 const MakeLobby: React.FC = () => {
-    
+    const {isHost,setHost,userName,setUsername,numRounds,setNumRounds,roomCode,setRoomCode} = usePlayerStore()
+    const [joinLobby, setJoinLobby] = useState(false);
 
 
     const{
@@ -61,14 +62,15 @@ const MakeLobby: React.FC = () => {
       console.log(a.code);
       
       //consume the response and save it to the zustand
-      
+      setRoomCode(a.code);
+      console.log('the zustand room code stored is ' + a.code)
       //navigate to the game lobby page after a successful send 
-      return <Redirect to="/game-lobby" />;
+      setJoinLobby(true);
+      
     },
   });
 
 
-    const {isHost,setHost,userName,setUsername,numRounds,setNumRounds,roomCode,setRoomCode} = usePlayerStore()
     // const [rounds, SetRounds] = useState(1);
     // const [name, SetName] = useState("host");
 
@@ -93,8 +95,10 @@ const MakeLobby: React.FC = () => {
     
     
     
-
-   
+    //if a flag has been hit then return a redirect
+    if(joinLobby){
+        return <Redirect to="/game-lobby" />;
+    }
     
     return (
         <IonPage>
