@@ -105,7 +105,7 @@ const MakeLobby: React.FC = () => {
                 <input onInput={(e)=>setUsername((e.target as HTMLInputElement).value)} {...register("userName")} />
                 <IonList>
                     <IonItem>
-                        <IonSelect onIonChange={(e)=>setNumRounds(e.detail.value)} placeholder="Select Number of Turns">
+                        <IonSelect onIonChange={(e)=>setNumRounds(Number(e.detail.value))} placeholder="Select Number of Turns">
                             <IonSelectOption value="1">1</IonSelectOption>
                             <IonSelectOption value="2">2</IonSelectOption>
                             <IonSelectOption value="3">3</IonSelectOption>
