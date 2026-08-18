@@ -1,8 +1,10 @@
 import { IonContent, IonHeader, IonPage, IonTitle, IonToolbar, IonButton, IonRippleEffect } from '@ionic/react';
 import ExploreContainer from '../components/ExploreContainer';
 import './Home.css';
+import { usePlayerStore } from '../store/gameStore';
 
 const Home: React.FC = () => {
+  const {isHost, setHost} = usePlayerStore()
   return (
     <IonPage>
       <IonHeader>
@@ -16,8 +18,8 @@ const Home: React.FC = () => {
             <IonTitle size="large">Battle Words</IonTitle>
           </IonToolbar>
         </IonHeader>
-        <IonButton routerLink="/join-lobby">Join Lobby</IonButton>
-        <IonButton routerLink="/make-lobby">Make Lobby</IonButton>
+        <IonButton routerLink="/join-lobby" onClick={(e)=>{setHost(false)}}>Join Lobby</IonButton>
+        <IonButton routerLink="/make-lobby" onClick={(e)=>{setHost(true)}}>Make Lobby</IonButton>
         <IonButton routerLink="/how-to-play">How to Play!</IonButton>
       </IonContent>
     </IonPage>

@@ -21,7 +21,8 @@ async function startLobby(data: any) {
 }
 
 const MakeLobby: React.FC = () => {
-    
+    const {userName,setUsername,numRounds,setNumRounds,roomCode,setRoomCode} = usePlayerStore()
+    const [joinLobby, setJoinLobby] = useState(false);
 
 
     const{
@@ -57,23 +58,29 @@ const MakeLobby: React.FC = () => {
       // - queryClient.invalidateQueries({ queryKey: ["messages"] }) to refetch a list
       // - show a toast, redirect, etc.
       //console log a response for what got shown
-      
+      console.log(a);
       console.log(a.code);
       
       //consume the response and save it to the zustand
-      
+      setRoomCode(a.code);
+      console.log('the zustand room code stored is ' + a.code)
       //navigate to the game lobby page after a successful send 
-      return <Redirect to="/game-lobby" />;
+      setJoinLobby(true);
+      
     },
   });
 
 
-    const {isHost,setHost,userName,setUsername,numRounds,setNumRounds,roomCode,setRoomCode} = usePlayerStore()
     // const [rounds, SetRounds] = useState(1);
     // const [name, SetName] = useState("host");
 
     const onSubmit = (data: any) =>{
        
+        type dataObj = {
+            username: string;
+            totalRounds: number;
+            role: string;
+        }
         const dataObj = {
             username: userName,
             totalRounds: numRounds,
@@ -88,8 +95,10 @@ const MakeLobby: React.FC = () => {
     
     
     
-
-   
+    //if a flag has been hit then return a redirect
+    if(joinLobby){
+        return <Redirect to="/game-lobby" />;
+    }
     
     return (
         <IonPage>
@@ -100,7 +109,7 @@ const MakeLobby: React.FC = () => {
                 <input onInput={(e)=>setUsername((e.target as HTMLInputElement).value)} {...register("userName")} />
                 <IonList>
                     <IonItem>
-                        <IonSelect onIonChange={(e)=>setNumRounds(e.detail.value)} placeholder="Select Number of Turns">
+                        <IonSelect onIonChange={(e)=>setNumRounds(Number(e.detail.value))} placeholder="Select Number of Turns">
                             <IonSelectOption value="1">1</IonSelectOption>
                             <IonSelectOption value="2">2</IonSelectOption>
                             <IonSelectOption value="3">3</IonSelectOption>
