@@ -21,6 +21,7 @@ const Home: React.FC = () => {
         <IonButton routerLink="/join-lobby" onClick={(e)=>{setHost(false)}}>Join Lobby</IonButton>
         <IonButton routerLink="/make-lobby" onClick={(e)=>{setHost(true)}}>Make Lobby</IonButton>
         <IonButton routerLink="/how-to-play">How to Play!</IonButton>
+        <IonButton routerLink="/lobby/TEST1234">Go to Lobby (Test)</IonButton>
       </IonContent>
     </IonPage>
   );
