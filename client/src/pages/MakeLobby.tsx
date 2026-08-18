@@ -3,7 +3,6 @@ import { IonItem, IonList, IonSelect, IonSelectOption } from '@ionic/react';
 import { useForm } from 'react-hook-form';
 import { useMutation } from "@tanstack/react-query";
 import { Redirect } from 'react-router';
-import { useState } from 'react';
 import { usePlayerStore } from "../store/gameStore";
 
 // Function to data to the backend
