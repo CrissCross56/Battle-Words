@@ -62,7 +62,7 @@ const App: React.FC = () => (
         <Route exact path="/how-to-play">
           <HowToPlay />
         </Route>
-        <Route exact path="/lobby">
+        <Route exact path="/lobby/:roomCode">
           <Lobby />
         </Route>
       </IonRouterOutlet>
