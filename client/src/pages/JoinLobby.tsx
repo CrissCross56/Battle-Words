@@ -2,18 +2,20 @@ import {IonPage, IonTitle} from '@ionic/react';
 import { useForm } from 'react-hook-form';
 import { useMutation, useQuery } from "@tanstack/react-query";
 import { Redirect } from 'react-router-dom';
+import { useState } from 'react';
+import { usePlayerStore } from "../store/gameStore";
 
 //function to get data on all games from the backend
 async function getAllGames(){
-    const res = await fetch("my api route goes here");
+    const res = await fetch("my get request goes here");
     if(!res.ok) throw new Error("Something went wrong while getting the game data from the backend")
     return res.json();
 }
 
 
 // Function to send data to the backend
-async function sendLobbyData(data: any){
-    const res = await fetch("localhost/:roomCode/start",{
+async function startLobby(data: any){
+    const res = await fetch(`http://localhost:3000/rooms/${data.code}/join`,{
         method: "POST",
         headers:{
             "Content-Type": "application/json"
@@ -26,6 +28,10 @@ async function sendLobbyData(data: any){
 
 
 const JoinLobby: React.FC = () => {
+    const {userName,setUsername,roomCode,setRoomCode} = usePlayerStore();
+    const [localCode, setLocalCode] = useState("");
+    const [joinLobby, setJoinLobby] = useState(false);
+
     const{
         register,
         handleSubmit,
@@ -50,28 +56,59 @@ const JoinLobby: React.FC = () => {
         queryFn: getAllGames,
     })
 
-    const mutation = useMutation({
-    mutationFn: sendLobbyData,
-    onSuccess: () => {
+    const lobbyStart = useMutation({
+    mutationFn: startLobby,
+    onSuccess: (a: any) => {
         // Common things to do here later:
         // - queryClient.invalidateQueries({ queryKey: ["messages"] }) to refetch a list
         // - show a toast, redirect, etc.
 
-        return <Redirect to="/game-lobby" />;
+        //on success, console log the data and pass the returned data into the zustand store i.e. the code for the lobby
+        // console.log(a);
+        // console.log(a.code);
+        // console.log('the zustand room code stored is ' + a.code)
+        // setRoomCode(a.code);
+
+        //if the lobbycode they submitted was correct then store it in the zustand
+        setRoomCode(localCode);
+
+        //change state to redirect to the right component
+        setJoinLobby(true);
     },
     });
 
-    const onSubmit = (data: any) => mutation.mutate(data);
+     const onSubmit = (data: any) =>{
+       
+        type dataObj = {
+            username: string;
+            role: string;
+            code: string;
+        }
+        const dataObj = {
+            username: userName,
+            role: "PLAYER",
+            code: localCode
+        }
+        lobbyStart.mutate(dataObj);
+    }
 
+
+
+
+    
+    
+    if(joinLobby){
+        return <Redirect to="/game-lobby" />;
+    }
     return (
         <IonPage>
             <IonTitle>Join Lobby</IonTitle>
             
             <form onSubmit={handleSubmit(onSubmit)}>
                 <label> Username: </label>
-                <input {...register("userName")} />
+                <input onInput={(e)=>setUsername((e.target as HTMLInputElement).value)} {...register("userName")} />
                 <label> Lobby Code: </label>
-                <input {...register("lobbyCode")} />
+                <input onInput={(e)=>setLocalCode((e.target as HTMLInputElement).value)} {...register("lobbyCode")} />
                 <button type="submit" disabled={isSubmitting}>
                     Join Lobby
                 </button>

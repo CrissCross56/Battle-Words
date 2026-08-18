@@ -21,7 +21,7 @@ async function startLobby(data: any) {
 }
 
 const MakeLobby: React.FC = () => {
-    const {isHost,setHost,userName,setUsername,numRounds,setNumRounds,roomCode,setRoomCode} = usePlayerStore()
+    const {userName,setUsername,numRounds,setNumRounds,roomCode,setRoomCode} = usePlayerStore()
     const [joinLobby, setJoinLobby] = useState(false);
 
 
