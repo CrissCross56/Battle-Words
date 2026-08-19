@@ -1,4 +1,5 @@
 import React, { useEffect, useRef, useState } from 'react'
+import { IonPage } from '@ionic/react'
 import './Gameplay.css'
 import { usePlayerStore } from '../store/gameStore'
 
@@ -21,7 +22,13 @@ type GameStatus = {
   totalRounds: number
 }
 
-type GamePhase = 'scramble' | 'phase-transition' | 'unscramble' | 'waiting' | 'timeout' | 'game-ended'
+type GamePhase =
+  | 'scramble'
+  | 'phase-transition'
+  | 'unscramble'
+  | 'waiting'
+  | 'timeout'
+  | 'game-ended'
 
 type ScoreboardEntry = {
   username: string
@@ -38,8 +45,10 @@ function getGameContext () {
   }
 
   const params = new URLSearchParams(window.location.search)
-  const queryGameId = params.get('gameId') || localStorage.getItem('battleWordsGameId') || ''
-  const queryMemberId = params.get('memberId') || localStorage.getItem('battleWordsMemberId') || ''
+  const queryGameId =
+    params.get('gameId') || localStorage.getItem('battleWordsGameId') || ''
+  const queryMemberId =
+    params.get('memberId') || localStorage.getItem('battleWordsMemberId') || ''
 
   return {
     gameId: queryGameId,
@@ -70,7 +79,9 @@ function getDistanceRange (distance: number): string {
     { min: 23, max: 25 }
   ]
 
-  const range = ranges.find(entry => distance >= entry.min && distance <= entry.max)
+  const range = ranges.find(
+    entry => distance >= entry.min && distance <= entry.max
+  )
 
   if (!range) return '23-25'
 
@@ -92,11 +103,18 @@ export function getHintSide (direction: HintDirection | string): CellCoverage {
 // The actual word is resolved by the backend route below, using the DB-backed word bank
 // seeded from api/prisma/wordles.json. Do not hardcode a target word in the client.
 const Gameplay: React.FC = () => {
-  const { userName, gameId: storeGameId, memberId: storeMemberId } = usePlayerStore()
+  const {
+    userName,
+    gameId: storeGameId,
+    memberId: storeMemberId
+  } = usePlayerStore()
   const [draftGuess, setDraftGuess] = useState('')
   const [submittedGuesses, setSubmittedGuesses] = useState<SubmittedGuess[]>([])
   const [errorMessage, setErrorMessage] = useState('')
-  const [gameStatus, setGameStatus] = useState<GameStatus>({ currentRound: 1, totalRounds: 1 })
+  const [gameStatus, setGameStatus] = useState<GameStatus>({
+    currentRound: 1,
+    totalRounds: 1
+  })
   const [scoreboard, setScoreboard] = useState<ScoreboardEntry[]>([])
   const [gamePhase, setGamePhase] = useState<GamePhase>('scramble')
   const [scrambleWord, setScrambleWord] = useState('')
@@ -109,21 +127,10 @@ const Gameplay: React.FC = () => {
   const inputRef = useRef<HTMLInputElement | null>(null)
   const gamePhaseRef = useRef<GamePhase>('scramble')
   const lastTimeoutRoundRef = useRef<number | null>(null)
-  const roundStartTimeRef = useRef<Date | null>(null)
 
   useEffect(() => {
     gamePhaseRef.current = gamePhase
   }, [gamePhase])
-
-  // Ensure previous pages don't bleed through
-  useEffect(() => {
-    const allPages = document.querySelectorAll('ion-page')
-    allPages.forEach(page => {
-      if (page.textContent?.includes('Game Lobby') || page.textContent?.includes('game-lobby')) {
-        (page as HTMLElement).style.display = 'none'
-      }
-    })
-  }, [])
 
   const gameContext = {
     gameId: getGameContext().gameId || storeGameId,
@@ -162,7 +169,6 @@ const Gameplay: React.FC = () => {
         if (current <= 1) {
           window.clearInterval(transitionTimer)
           setGamePhase('unscramble')
-          setUnscrambleTimer(30)
           setErrorMessage('Phase 2! Guess the Scrambled Word!')
           return 0
         }
@@ -206,7 +212,9 @@ const Gameplay: React.FC = () => {
 
     const refreshState = async () => {
       try {
-        const statusResponse = await fetch(`http://localhost:3000/games/${gameContext.gameId}/status`)
+        const statusResponse = await fetch(
+          `http://localhost:3000/games/${gameContext.gameId}/status`
+        )
         const statusData = await statusResponse.json()
 
         if (statusResponse.ok) {
@@ -227,27 +235,35 @@ const Gameplay: React.FC = () => {
             setErrorMessage('')
           }
 
-          // Update round timer based on round start time
-          if (statusData?.round?.startedAt) {
-            if (!roundStartTimeRef.current) {
-              roundStartTimeRef.current = new Date(statusData.round.startedAt)
-            }
-            const elapsedSeconds = Math.floor((new Date().getTime() - roundStartTimeRef.current.getTime()) / 1000)
-            const remainingSeconds = Math.max(0, 300 - elapsedSeconds) // 5 minute limit
+          // Update the 5-minute game timer from the game's original start time.
+          if (statusData?.gameStartedAt) {
+            const gameStartedAt = new Date(statusData.gameStartedAt).getTime()
+
+            const elapsedSeconds = Math.floor(
+              (Date.now() - gameStartedAt) / 1000
+            )
+
+            const remainingSeconds = Math.max(0, 300 - elapsedSeconds)
+
             setRoundTimer(remainingSeconds)
           }
 
-          const isRoundEnded = statusData?.gameEnded === true || statusData?.round?.endedAt
-          const isGameFullyEnded = statusData?.gameEnded === true && statusData?.currentRound >= statusData?.totalRounds
+          const isGameEndedByServer = statusData?.gameEnded === true
 
-          if (isGameFullyEnded) {
+          if (isGameEndedByServer) {
             setGamePhase('game-ended')
             setIsGameEnded(true)
             setErrorMessage('Game has ended! Tallying the scores...')
             return
           }
 
-          if (isRoundEnded && gamePhaseRef.current !== 'timeout' && lastTimeoutRoundRef.current !== nextGameStatus.currentRound) {
+          const isRoundEnded = statusData?.round?.endedAt
+
+          if (
+            isRoundEnded &&
+            gamePhaseRef.current !== 'timeout' &&
+            lastTimeoutRoundRef.current !== nextGameStatus.currentRound
+          ) {
             setGamePhase('timeout')
             setTimeoutCountdown(5)
             setErrorMessage('Time ran out! Next round is starting!')
@@ -259,11 +275,17 @@ const Gameplay: React.FC = () => {
       }
 
       try {
-        const scoreboardResponse = await fetch(`http://localhost:3000/games/${gameContext.gameId}/scoreboard`)
+        const scoreboardResponse = await fetch(
+          `http://localhost:3000/games/${gameContext.gameId}/scoreboard`
+        )
         const scoreboardData = await scoreboardResponse.json()
 
         if (scoreboardResponse.ok) {
-          setScoreboard(Array.isArray(scoreboardData?.scoreboard) ? scoreboardData.scoreboard : [])
+          setScoreboard(
+            Array.isArray(scoreboardData?.scoreboard)
+              ? scoreboardData.scoreboard
+              : []
+          )
         }
       } catch (error) {
         console.error('Unable to fetch scoreboard', error)
@@ -315,21 +337,26 @@ const Gameplay: React.FC = () => {
     }
 
     if (!gameContext.gameId || !gameContext.memberId) {
-      setErrorMessage('Missing game or player context. Start from a valid multiplayer game session.')
+      setErrorMessage(
+        'Missing game or player context. Start from a valid multiplayer game session.'
+      )
       return
     }
 
     try {
-      const response = await fetch(`http://localhost:3000/games/${gameContext.gameId}/scramble-guess`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json'
-        },
-        body: JSON.stringify({
-          memberId: gameContext.memberId,
-          guess: draftGuess
-        })
-      })
+      const response = await fetch(
+        `http://localhost:3000/games/${gameContext.gameId}/scramble-guess`,
+        {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify({
+            memberId: gameContext.memberId,
+            guess: draftGuess
+          })
+        }
+      )
 
       const data = await response.json()
 
@@ -343,10 +370,19 @@ const Gameplay: React.FC = () => {
       if (data?.correct === true) {
         setScrambleWord(draftGuess.toUpperCase())
         setPhaseTransitionSeconds(5)
-        setGamePhase('phase-transition')
         setUnscrambleGuess('')
         setDraftGuess('')
         setErrorMessage('Phase 2 starts in 5 seconds!')
+
+        if (data.unscrambleStartedAt) {
+          const startedAt = new Date(data.unscrambleStartedAt).getTime()
+          const elapsedSeconds = Math.floor((Date.now() - startedAt) / 1000)
+
+          const remainingSeconds = Math.max(0, 30 - elapsedSeconds)
+          setUnscrambleTimer(remainingSeconds)
+        }
+
+        setGamePhase('phase-transition')
         return
       }
 
@@ -369,7 +405,9 @@ const Gameplay: React.FC = () => {
         inputRef.current?.focus()
       }
     } catch (error) {
-      setErrorMessage('Could not reach the server. Check the backend connection.')
+      setErrorMessage(
+        'Could not reach the server. Check the backend connection.'
+      )
     }
   }
 
@@ -380,21 +418,26 @@ const Gameplay: React.FC = () => {
     }
 
     if (!gameContext.gameId || !gameContext.memberId) {
-      setErrorMessage('Missing game or player context. Start from a valid multiplayer game session.')
+      setErrorMessage(
+        'Missing game or player context. Start from a valid multiplayer game session.'
+      )
       return
     }
 
     try {
-      const response = await fetch(`http://localhost:3000/games/${gameContext.gameId}/unscramble-guess`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json'
-        },
-        body: JSON.stringify({
-          memberId: gameContext.memberId,
-          guess: unscrambleGuess
-        })
-      })
+      const response = await fetch(
+        `http://localhost:3000/games/${gameContext.gameId}/unscramble-guess`,
+        {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify({
+            memberId: gameContext.memberId,
+            guess: unscrambleGuess
+          })
+        }
+      )
 
       const data = await response.json()
 
@@ -427,7 +470,11 @@ const Gameplay: React.FC = () => {
 
     const key = event.key.toUpperCase()
 
-    if (!/^[A-Z]$/.test(key) && event.key !== 'Backspace' && event.key !== 'Tab') {
+    if (
+      !/^[A-Z]$/.test(key) &&
+      event.key !== 'Backspace' &&
+      event.key !== 'Tab'
+    ) {
       event.preventDefault()
       return
     }
@@ -449,204 +496,267 @@ const Gameplay: React.FC = () => {
   }
 
   return (
-    <div className='gameplay-page'>
-      <div className='gameplay-shell'>
-        <div className='gameplay-header'>
-          <div className='title-block'>
-            <p className='eyebrow'>Battle Words</p>
-            <h1 className='gameplay-title'>Scramble</h1>
-          </div>
-          {userName && (
-            <div className='player-info'>
-              <p className='player-name'>{userName}</p>
+    <IonPage>
+      <div className='gameplay-page'>
+        <div className='gameplay-shell'>
+          <div className='gameplay-header'>
+            <div className='title-block'>
+              <p className='eyebrow'>Battle Words</p>
+              <h1 className='gameplay-title'>Scramble</h1>
             </div>
-          )}
-        </div>
+            {userName && (
+              <div className='player-info'>
+                <p className='player-name'>{userName}</p>
+              </div>
+            )}
+          </div>
 
-        <div className='status-panel'>
-          <div className='status-row'>
-            <span>Round</span>
-            <strong>{gameStatus.currentRound} / {gameStatus.totalRounds}</strong>
-          </div>
-          <div className='status-row'>
-            <span>Guesses</span>
-            <strong>{MAX_GUESSES - submittedGuesses.length}</strong>
-          </div>
-          {gamePhase === 'unscramble' && (
+          <div className='status-panel'>
             <div className='status-row'>
-              <span>Timer</span>
-              <strong>{unscrambleTimer}s</strong>
+              <span>Round</span>
+              <strong>
+                {gameStatus.currentRound} / {gameStatus.totalRounds}
+              </strong>
             </div>
-          )}
-          {gamePhase !== 'game-ended' && (
             <div className='status-row'>
-              <span>Round Time</span>
-              <strong>{Math.floor(roundTimer / 60)}:{String(roundTimer % 60).padStart(2, '0')}</strong>
+              <span>Guesses</span>
+              <strong>{MAX_GUESSES - submittedGuesses.length}</strong>
             </div>
-          )}
-        </div>
+            {gamePhase === 'unscramble' && (
+              <div className='status-row'>
+                <span>Timer</span>
+                <strong>{unscrambleTimer}s</strong>
+              </div>
+            )}
+            {gamePhase !== 'game-ended' && (
+              <div className='status-row'>
+                <span>Round Time</span>
+                <strong>
+                  {Math.floor(roundTimer / 60)}:
+                  {String(roundTimer % 60).padStart(2, '0')}
+                </strong>
+              </div>
+            )}
+          </div>
 
-        <div className='gameplay-main'>
-          <div className='gameplay-stage'>
-            <div className='phase-card'>
-              <div className='phase-header'>
-                <span className='phase-badge'>
-                  {gamePhase === 'scramble' ? 'Round 1: Solve the scramble' : 'Round 2: Unscramble the word'}
-                </span>
-                {gamePhase === 'unscramble' && (
-                  <span className='phase-timer'>30s challenge</span>
+          <div className='gameplay-main'>
+            <div className='gameplay-stage'>
+              <div className='phase-card'>
+                <div className='phase-header'>
+                  <span className='phase-badge'>
+                    {gamePhase === 'scramble'
+                      ? 'Round 1: Solve the scramble'
+                      : 'Round 2: Unscramble the word'}
+                  </span>
+                  {gamePhase === 'unscramble' && (
+                    <span className='phase-timer'>30s challenge</span>
+                  )}
+                </div>
+
+                {gamePhase === 'scramble' ? (
+                  <div className='board-shell'>
+                    <div className='board'>
+                      {rows.map((row, rowIndex) => (
+                        <div
+                          key={`guess-row-${rowIndex}`}
+                          className='board-row'
+                        >
+                          {Array.from({ length: GRID_SIZE }, (_, colIndex) => {
+                            const letter = row.guess[colIndex] ?? ''
+                            const hint = row.hints?.[colIndex]
+                            const coverage = hint
+                              ? getHintSide(hint.direction)
+                              : 'empty'
+                            const color = hint
+                              ? getHintColor(hint.range)
+                              : 'transparent'
+
+                            return (
+                              <div
+                                key={`cell-${rowIndex}-${colIndex}`}
+                                className={`cell ${letter ? 'is-filled' : ''} ${
+                                  row.isDraft ? 'is-active' : ''
+                                }`}
+                                data-coverage={coverage}
+                                style={{ ['--cell-color' as string]: color }}
+                                onClick={() => inputRef.current?.focus()}
+                              >
+                                <span className='cell-color' />
+                                <span className='cell-letter'>{letter}</span>
+                              </div>
+                            )
+                          })}
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                ) : gamePhase === 'phase-transition' ? (
+                  <div className='transition-panel'>
+                    <div className='phase-transition-badge'>Phase 2!</div>
+                    <h2>Guess the Scrambled Word!</h2>
+                    <div className='transition-countdown'>
+                      {phaseTransitionSeconds}s
+                    </div>
+                    <p>
+                      The first phase will vanish in {phaseTransitionSeconds}{' '}
+                      seconds.
+                    </p>
+                  </div>
+                ) : gamePhase === 'unscramble' ? (
+                  <div className='unscramble-panel'>
+                    <div className='unscramble-word'>
+                      <span>Scrambled word</span>
+                      <strong>{scrambleWord || '------'}</strong>
+                    </div>
+                    <label className='unscramble-input-wrap'>
+                      <span>Enter the word you think it is</span>
+                      <input
+                        type='text'
+                        value={unscrambleGuess}
+                        onChange={event =>
+                          setUnscrambleGuess(event.target.value.toUpperCase())
+                        }
+                        maxLength={5}
+                        placeholder='FIVE LETTERS'
+                        onKeyDown={event => {
+                          if (event.key === 'Enter') {
+                            event.preventDefault()
+                            handleSubmitUnscrambleGuess()
+                          }
+                        }}
+                      />
+                    </label>
+                    <button
+                      className='submit-answer-button'
+                      onClick={handleSubmitUnscrambleGuess}
+                    >
+                      Submit answer
+                    </button>
+                  </div>
+                ) : gamePhase === 'waiting' ? (
+                  <div className='waiting-panel'>
+                    <h2>Waiting for other players</h2>
+                  </div>
+                ) : gamePhase === 'game-ended' ? (
+                  <div className='end-game-panel'>
+                    <h2>Game Complete!</h2>
+                    <p>Final results are showing on the scoreboard →</p>
+                  </div>
+                ) : (
+                  <div className='waiting-panel'>
+                    <h2>Time ran out! Next round is starting!</h2>
+                    <div className='countdown-value'>{timeoutCountdown}s</div>
+                  </div>
                 )}
               </div>
+            </div>
 
-              {gamePhase === 'scramble' ? (
-                <div className='board-shell'>
-                  <div className='board'>
-                    {rows.map((row, rowIndex) => (
-                      <div key={`guess-row-${rowIndex}`} className='board-row'>
-                        {Array.from({ length: GRID_SIZE }, (_, colIndex) => {
-                          const letter = row.guess[colIndex] ?? ''
-                          const hint = row.hints?.[colIndex]
-                          const coverage = hint ? getHintSide(hint.direction) : 'empty'
-                          const color = hint ? getHintColor(hint.range) : 'transparent'
-
-                          return (
-                            <div
-                              key={`cell-${rowIndex}-${colIndex}`}
-                              className={`cell ${letter ? 'is-filled' : ''} ${
-                                row.isDraft ? 'is-active' : ''
-                              }`}
-                              data-coverage={coverage}
-                              style={{ ['--cell-color' as string]: color }}
-                              onClick={() => inputRef.current?.focus()}
-                            >
-                              <span className='cell-color' />
-                              <span className='cell-letter'>{letter}</span>
-                            </div>
-                          )
-                        })}
-                      </div>
-                    ))}
-                  </div>
-                </div>
-              ) : gamePhase === 'phase-transition' ? (
-                <div className='transition-panel'>
-                  <div className='phase-transition-badge'>Phase 2!</div>
-                  <h2>Guess the Scrambled Word!</h2>
-                  <div className='transition-countdown'>{phaseTransitionSeconds}s</div>
-                  <p>The first phase will vanish in {phaseTransitionSeconds} seconds.</p>
-                </div>
-              ) : gamePhase === 'unscramble' ? (
-                <div className='unscramble-panel'>
-                  <div className='unscramble-word'>
-                    <span>Scrambled word</span>
-                    <strong>{scrambleWord || '------'}</strong>
-                  </div>
-                  <label className='unscramble-input-wrap'>
-                    <span>Enter the word you think it is</span>
-                    <input
-                      type='text'
-                      value={unscrambleGuess}
-                      onChange={event => setUnscrambleGuess(event.target.value.toUpperCase())}
-                      maxLength={5}
-                      placeholder='FIVE LETTERS'
-                      onKeyDown={event => {
-                        if (event.key === 'Enter') {
-                          event.preventDefault()
-                          handleSubmitUnscrambleGuess()
-                        }
-                      }}
-                    />
-                  </label>
-                  <button className='submit-answer-button' onClick={handleSubmitUnscrambleGuess}>
-                    Submit answer
-                  </button>
-                </div>
-              ) : gamePhase === 'waiting' ? (
-                <div className='waiting-panel'>
-                  <h2>Waiting for other players</h2>
-                </div>
-              ) : gamePhase === 'game-ended' ? (
-                <div className='end-game-panel'>
-                  <h2>Game Complete!</h2>
-                  <p>Final results are showing on the scoreboard →</p>
-                </div>
-              ) : (
-                <div className='waiting-panel'>
-                  <h2>Time ran out! Next round is starting!</h2>
-                  <div className='countdown-value'>{timeoutCountdown}s</div>
-                </div>
-              )}
+            <div className='scoreboard-panel'>
+              <div className='panel-label'>Scoreboard</div>
+              <div className='scoreboard-list'>
+                {scoreboard.length === 0 ? (
+                  <p className='empty-scoreboard'>Waiting for scores…</p>
+                ) : (
+                  scoreboard.map((entry, index) => (
+                    <div
+                      key={`${entry.username}-${index}`}
+                      className='score-row'
+                    >
+                      <span>{entry.username}</span>
+                      <strong>{entry.score}</strong>
+                    </div>
+                  ))
+                )}
+              </div>
             </div>
           </div>
 
-          <div className='scoreboard-panel'>
-            <div className='panel-label'>Scoreboard</div>
-            <div className='scoreboard-list'>
-              {scoreboard.length === 0 ? (
-                <p className='empty-scoreboard'>Waiting for scores…</p>
-              ) : (
-                scoreboard.map((entry, index) => (
-                  <div key={`${entry.username}-${index}`} className='score-row'>
-                    <span>{entry.username}</span>
-                    <strong>{entry.score}</strong>
-                  </div>
-                ))
-              )}
+          {errorMessage && (
+            <div className='error-banner' role='alert'>
+              {errorMessage}
             </div>
+          )}
+
+          <div className='alphabet-bar' aria-label='alphabet selector'>
+            {ALPHABET.split('').map(letter => (
+              <span key={letter} className='alphabet-letter'>
+                {letter}
+              </span>
+            ))}
           </div>
-        </div>
 
-        {errorMessage && (
-          <div className='error-banner' role='alert'>
-            {errorMessage}
+          <div className='keyboard-hint' aria-label='hint legend'>
+            <span className='legend-item'>
+              <span
+                className='legend-swatch'
+                style={{ background: '#22c55e' }}
+              />{' '}
+              0
+            </span>
+            <span className='legend-item'>
+              <span
+                className='legend-swatch'
+                style={{ background: '#facc15' }}
+              />{' '}
+              1
+            </span>
+            <span className='legend-item'>
+              <span
+                className='legend-swatch'
+                style={{ background: '#f97316' }}
+              />{' '}
+              2
+            </span>
+            <span className='legend-item'>
+              <span
+                className='legend-swatch'
+                style={{ background: '#ef4444' }}
+              />{' '}
+              3-7
+            </span>
+            <span className='legend-item'>
+              <span
+                className='legend-swatch'
+                style={{ background: '#3b82f6' }}
+              />{' '}
+              8-12
+            </span>
+            <span className='legend-item'>
+              <span
+                className='legend-swatch'
+                style={{ background: '#a855f7' }}
+              />{' '}
+              13-17
+            </span>
+            <span className='legend-item'>
+              <span
+                className='legend-swatch'
+                style={{ background: '#a16207' }}
+              />{' '}
+              18-22
+            </span>
+            <span className='legend-item'>
+              <span
+                className='legend-swatch'
+                style={{ background: '#111827' }}
+              />{' '}
+              23-25
+            </span>
           </div>
-        )}
 
-        <div className='alphabet-bar' aria-label='alphabet selector'>
-          {ALPHABET.split('').map(letter => (
-            <span key={letter} className='alphabet-letter'>{letter}</span>
-          ))}
+          <input
+            ref={inputRef}
+            type='text'
+            value={draftGuess}
+            onChange={() => undefined}
+            onKeyDown={handleKeyDown}
+            aria-label='Guess input'
+            className='sr-only-input'
+            autoFocus
+          />
         </div>
-
-        <div className='keyboard-hint' aria-label='hint legend'>
-          <span className='legend-item'>
-            <span className='legend-swatch' style={{ background: '#22c55e' }} /> 0
-          </span>
-          <span className='legend-item'>
-            <span className='legend-swatch' style={{ background: '#facc15' }} /> 1
-          </span>
-          <span className='legend-item'>
-            <span className='legend-swatch' style={{ background: '#f97316' }} /> 2
-          </span>
-          <span className='legend-item'>
-            <span className='legend-swatch' style={{ background: '#ef4444' }} /> 3-7
-          </span>
-          <span className='legend-item'>
-            <span className='legend-swatch' style={{ background: '#3b82f6' }} /> 8-12
-          </span>
-          <span className='legend-item'>
-            <span className='legend-swatch' style={{ background: '#a855f7' }} /> 13-17
-          </span>
-          <span className='legend-item'>
-            <span className='legend-swatch' style={{ background: '#a16207' }} /> 18-22
-          </span>
-          <span className='legend-item'>
-            <span className='legend-swatch' style={{ background: '#111827' }} /> 23-25
-          </span>
-        </div>
-
-        <input
-          ref={inputRef}
-          type='text'
-          value={draftGuess}
-          onChange={() => undefined}
-          onKeyDown={handleKeyDown}
-          aria-label='Guess input'
-          className='sr-only-input'
-          autoFocus
-        />
       </div>
-    </div>
+    </IonPage>
   )
 }
 
