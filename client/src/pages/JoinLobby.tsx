@@ -1,121 +1,89 @@
-import {IonPage, IonTitle} from '@ionic/react';
+import { IonPage, IonTitle, IonButton } from '@ionic/react';
 import { useForm } from 'react-hook-form';
-import { useMutation, useQuery } from "@tanstack/react-query";
-import { Redirect } from 'react-router-dom';
-import { useState } from 'react';
-import { usePlayerStore } from "../store/gameStore";
+import { useMutation } from '@tanstack/react-query';
+import { useHistory } from 'react-router-dom';
+import { usePlayerStore } from '../store/gameStore';
 
-//function to get data on all games from the backend
-async function getAllGames(){
-    const res = await fetch("my get request goes here");
-    if(!res.ok) throw new Error("Something went wrong while getting the game data from the backend")
-    return res.json();
+async function joinRoom (roomCode: string, data: { username: string, role: 'PLAYER' | 'SPECTATOR' }) {
+  const res = await fetch(`http://localhost:3000/rooms/${roomCode}/join`, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json'
+    },
+    body: JSON.stringify(data)
+  })
+
+  if (!res.ok) {
+    throw new Error('Something went wrong while joining the room')
+  }
+
+  return res.json()
 }
-
-
-// Function to send data to the backend
-async function startLobby(data: any){
-    const res = await fetch(`http://localhost:3000/rooms/${data.code}/join`,{
-        method: "POST",
-        headers:{
-            "Content-Type": "application/json"
-        },
-        body: JSON.stringify(data)
-    })
-    if(!res.ok) throw new Error("Something went wrong while sending lobby data to the backend")
-        return res.json();
-}
-
 
 const JoinLobby: React.FC = () => {
-    const {userName,setUsername,roomCode,setRoomCode} = usePlayerStore();
-    const [localCode, setLocalCode] = useState("");
-    const [joinLobby, setJoinLobby] = useState(false);
+  const history = useHistory()
 
-    const{
-        register,
-        handleSubmit,
-        reset,
-        watch,
-        formState: {errors, isSubmitting},
-    } = useForm({
-        defaultValues: {
-            userName: "",
-            lobbyCode: "",
-        }
-    })
-
-    // const onSubmit = async (data: any) => {
-    //     //replace with tanstack query to send data to backend and get response
-    //     console.log(data);
-    //     reset();
-    // }
-
-    const {data, isLoading, isError} = useQuery({
-        queryKey: ["games"],
-        queryFn: getAllGames,
-    })
-
-    const lobbyStart = useMutation({
-    mutationFn: startLobby,
-    onSuccess: (a: any) => {
-        // Common things to do here later:
-        // - queryClient.invalidateQueries({ queryKey: ["messages"] }) to refetch a list
-        // - show a toast, redirect, etc.
-
-        //on success, console log the data and pass the returned data into the zustand store i.e. the code for the lobby
-        // console.log(a);
-        // console.log(a.code);
-        // console.log('the zustand room code stored is ' + a.code)
-        // setRoomCode(a.code);
-
-        //if the lobbycode they submitted was correct then store it in the zustand
-        setRoomCode(localCode);
-
-        //change state to redirect to the right component
-        setJoinLobby(true);
-    },
-    });
-
-     const onSubmit = (data: any) =>{
-       
-        type dataObj = {
-            username: string;
-            role: string;
-            code: string;
-        }
-        const dataObj = {
-            username: userName,
-            role: "PLAYER",
-            code: localCode
-        }
-        lobbyStart.mutate(dataObj);
+  const {
+    register,
+    handleSubmit,
+    reset,
+    formState: { isSubmitting }
+  } = useForm({
+    defaultValues: {
+      userName: '',
+      lobbyCode: ''
     }
+  })
 
+  const {
+    setUsername,
+    setRoomCode,
+    setMemberId,
+    setRoomId,
+    setHost
+  } = usePlayerStore()
 
-
-
-    
-    
-    if(joinLobby){
-        return <Redirect to="/game-lobby" />;
+  const mutation = useMutation({
+    mutationFn: ({ roomCode, username }: { roomCode: string, username: string }) => joinRoom(roomCode, {
+      username,
+      role: 'PLAYER'
+    }),
+    onSuccess: (response: any, variables) => {
+      setUsername(variables.username)
+      setRoomCode(variables.roomCode)
+      setMemberId(response.id)
+      setRoomId(response.roomId)
+      setHost(false)
+      localStorage.setItem('battleWordsRoomCode', variables.roomCode)
+      localStorage.setItem('battleWordsMemberId', response.id)
+      localStorage.setItem('battleWordsRoomId', response.roomId)
+      reset()
+      history.push('/game-lobby')
     }
-    return (
-        <IonPage>
-            <IonTitle>Join Lobby</IonTitle>
-            
-            <form onSubmit={handleSubmit(onSubmit)}>
-                <label> Username: </label>
-                <input onInput={(e)=>setUsername((e.target as HTMLInputElement).value)} {...register("userName")} />
-                <label> Lobby Code: </label>
-                <input onInput={(e)=>setLocalCode((e.target as HTMLInputElement).value)} {...register("lobbyCode")} />
-                <button type="submit" disabled={isSubmitting}>
-                    Join Lobby
-                </button>
-            </form>
+  })
 
-        </IonPage>
-    )
+  const onSubmit = (data: { userName: string, lobbyCode: string }) => {
+    mutation.mutate({
+      roomCode: data.lobbyCode.trim(),
+      username: data.userName.trim()
+    })
+  }
+
+  return (
+    <IonPage>
+      <IonTitle>Join Lobby</IonTitle>
+
+      <form onSubmit={handleSubmit(onSubmit)}>
+        <label> Username: </label>
+        <input {...register('userName')} />
+        <label> Lobby Code: </label>
+        <input {...register('lobbyCode')} />
+        <IonButton type='submit' disabled={isSubmitting}>
+          Join Lobby
+        </IonButton>
+      </form>
+    </IonPage>
+  )
 }
 
 export default JoinLobby;

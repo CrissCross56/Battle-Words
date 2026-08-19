@@ -22,8 +22,14 @@ type PlayerStore = {
     isHost: boolean,
     setHost: (hostBool: boolean) => void,
     roomCode: string,
-    setRoomCode: (rCode: string) => void
-
+    setRoomCode: (rCode: string) => void,
+    memberId: string,
+    setMemberId: (memberId: string) => void,
+    roomId: string,
+    setRoomId: (roomId: string) => void,
+    gameId: string,
+    setGameId: (gameId: string) => void,
+    clearSession: () => void
 }
 
 export const usePlayerStore = create<PlayerStore>((set) => ({
@@ -42,6 +48,26 @@ export const usePlayerStore = create<PlayerStore>((set) => ({
     roomCode: "",
     setRoomCode: (rCode) => set({
         roomCode: rCode
+    }),
+    memberId: "",
+    setMemberId: (memberId) => set({
+        memberId
+    }),
+    roomId: "",
+    setRoomId: (roomId) => set({
+        roomId
+    }),
+    gameId: "",
+    setGameId: (gameId) => set({
+        gameId
+    }),
+    clearSession: () => set({
+        userName: "",
+        numRounds: 1,
+        isHost: false,
+        roomCode: "",
+        memberId: "",
+        roomId: "",
+        gameId: ""
     })
-
 }))

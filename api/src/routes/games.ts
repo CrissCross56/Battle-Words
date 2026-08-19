@@ -38,6 +38,8 @@ async function checkRoundCompletion (gameId: string) {
     }
   })
 
+  let everyoneIsFinished = true
+
   for (const roundPlayer of roundPlayers) {
     const scrambleGuessCount = await prisma.scrambleGuess.count({
       where: {
@@ -53,11 +55,16 @@ async function checkRoundCompletion (gameId: string) {
     )
 
     if (!finished) {
-      return
+      everyoneIsFinished = false
+      break
     }
   }
 
-  // Everyone is finished.
+  if (!everyoneIsFinished) {
+    return
+  }
+
+  // Everyone is finished
   await prisma.round.update({
     where: {
       id: round.id
@@ -67,8 +74,11 @@ async function checkRoundCompletion (gameId: string) {
     }
   })
 
-  // More rounds remain.
-  if (game.currentRound < game.totalRounds) {
+  // Check if there are more rounds to play
+  const isLastRound = game.currentRound >= game.totalRounds
+
+  if (!isLastRound) {
+    // More rounds remain - create the next one
     const nextRoundNumber = game.currentRound + 1
 
     const wordCount = await prisma.word.count()
@@ -272,6 +282,7 @@ router.get('/:gameId/status', async (req, res) => {
       gameEnded: updatedGame.endedAt !== null,
       currentRound: updatedGame.currentRound,
       totalRounds: updatedGame.totalRounds,
+      gameStartedAt: updatedGame.startedAt,
       round
     })
   } catch (error) {
