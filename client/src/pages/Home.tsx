@@ -1,5 +1,4 @@
 // client/src/pages/Home.tsx
-import { useState } from 'react'
 import {
   IonContent,
   IonHeader,
@@ -14,18 +13,12 @@ import {
 import '../styles/Home.css'
 
 const Home: React.FC = () => {
-  const [isDark, setIsDark] = useState(document.documentElement.classList.contains('dark'))
-
-  const toggleDarkMode = () => {
-    document.documentElement.classList.toggle('dark')
-    setIsDark(!isDark)
-  }
-
   return (
     <IonPage>
       <IonHeader>
         <IonToolbar>
           <IonTitle>Battle Words</IonTitle>
+          {/* Dark mode toggle is now in App.tsx — no need here */}
         </IonToolbar>
       </IonHeader>
 
@@ -53,16 +46,6 @@ const Home: React.FC = () => {
 
             <IonButton expand="block" fill="outline" routerLink="/how-to-play">
               How to Play
-            </IonButton>
-
-            <IonButton
-              expand="block"
-              color="medium"
-              fill="clear"
-              onClick={toggleDarkMode}
-              style={{ marginTop: '1rem' }}
-            >
-              {isDark ? '☀️ Light Mode' : '🌙 Dark Mode'}
             </IonButton>
           </IonCardContent>
         </IonCard>
