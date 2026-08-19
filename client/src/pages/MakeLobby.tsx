@@ -77,12 +77,12 @@ const MakeLobby: React.FC = () => {
         <IonPage>
             <IonHeader>
                 <IonToolbar>
-                    <IonTitle>Make Lobby</IonTitle>
+                    <IonTitle>⚔️ Battle Words ⚔️ - Create A Game</IonTitle>
                 </IonToolbar>
             </IonHeader>
 
             <IonContent className="ion-padding">
-                <IonCard className="card-shadow">
+                <IonCard className="card-shadow form-card">
                     <IonCardContent>
                         <IonText>
                             <h2>🛡️ Create a Game</h2>
@@ -125,22 +125,22 @@ const MakeLobby: React.FC = () => {
                                 </IonList>
                             </div>
 
-                            {/* Buttons */}
+                            {/* Buttons - Back on left, Create Game on right */}
                             <div className="button-row">
-                                <IonButton 
-                                    type="submit" 
-                                    className="button-primary" 
-                                    disabled={isSubmitting}
-                                    expand="block"
-                                >
-                                    {isSubmitting ? 'Creating...' : '🚀 Make Lobby'}
-                                </IonButton>
                                 <IonButton 
                                     fill="outline" 
                                     routerLink="/home"
                                     expand="block"
                                 >
                                     Back
+                                </IonButton>
+                                <IonButton 
+                                    type="submit" 
+                                    className="button-primary" 
+                                    disabled={isSubmitting}
+                                    expand="block"
+                                >
+                                    {isSubmitting ? 'Creating...' : '🎮 Create Game'}
                                 </IonButton>
                             </div>
                         </form>
