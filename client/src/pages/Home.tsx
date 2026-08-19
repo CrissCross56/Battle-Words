@@ -14,10 +14,10 @@ import {
 import '../styles/Home.css'
 
 const Home: React.FC = () => {
-  const [isDark, setIsDark] = useState(document.body.classList.contains('dark'))
+  const [isDark, setIsDark] = useState(document.documentElement.classList.contains('dark'))
 
   const toggleDarkMode = () => {
-    document.body.classList.toggle('dark')
+    document.documentElement.classList.toggle('dark')
     setIsDark(!isDark)
   }
 
