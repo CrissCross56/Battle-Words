@@ -13,9 +13,12 @@ import {
   IonLabel,
   IonButton,
   IonChip,
+  IonCard,
+  IonCardContent,
 } from '@ionic/react'
 import { useIonRouter } from '@ionic/react'
 import { useEffect, useState } from 'react'
+import '../styles/Results.css'
 
 interface PlayerScore {
   id: string
@@ -69,43 +72,47 @@ const Results: React.FC = () => {
     <IonPage>
       <IonHeader>
         <IonToolbar>
-          <IonTitle>Game Over</IonTitle>
+          <IonTitle>⚔️ Game Over</IonTitle>
         </IonToolbar>
       </IonHeader>
 
       <IonContent className="ion-padding">
-        <IonText>
-          <h2>Final Scores</h2>
-          <p>Here's how everyone did.</p>
-        </IonText>
+        <IonCard className="card-shadow results-card">
+          <IonCardContent>
+            <IonText>
+              <h2>🏆 Final Scores</h2>
+              <p>Here's how everyone did.</p>
+            </IonText>
 
-        <IonList>
-          {players.map((player, index) => (
-            <IonItem key={player.id}>
-              <IonLabel>
-                <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                  <span style={{ fontWeight: 'bold', minWidth: '40px' }}>
-                    {getRankLabel(index)}
-                  </span>
-                  <strong>{player.username}</strong>
-                </div>
-              </IonLabel>
-              <IonChip
-                style={{
-                  backgroundColor: getRankColor(index),
-                  color: index < 3 ? '#ffffff' : '#1a1a2e',
-                  fontWeight: 'bold',
-                }}
-              >
-                {player.score} pts
-              </IonChip>
-            </IonItem>
-          ))}
-        </IonList>
+            <IonList>
+              {players.map((player, index) => (
+                <IonItem key={player.id} className="score-item">
+                  <IonLabel>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                      <span className="rank-badge">
+                        {getRankLabel(index)}
+                      </span>
+                      <strong>{player.username}</strong>
+                    </div>
+                  </IonLabel>
+                  <IonChip
+                    className="score-chip"
+                    style={{
+                      backgroundColor: getRankColor(index),
+                      color: index < 3 ? '#ffffff' : '#1a1a2e',
+                    }}
+                  >
+                    {player.score} pts
+                  </IonChip>
+                </IonItem>
+              ))}
+            </IonList>
 
-        <IonButton expand="block" onClick={goHome}>
-          Back to Home
-        </IonButton>
+            <IonButton expand="block" className="button-primary" onClick={goHome}>
+              🏠 Back to Home
+            </IonButton>
+          </IonCardContent>
+        </IonCard>
       </IonContent>
     </IonPage>
   )
