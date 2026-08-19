@@ -1,17 +1,10 @@
-import { IonPage, IonTitle, IonButton } from '@ionic/react';
-import { useHistory } from 'react-router-dom';
-import { usePlayerStore } from '../store/gameStore';
-import { useEffect } from 'react';
+import { IonPage, IonTitle, IonButton, useIonRouter } from '@ionic/react'
+import { usePlayerStore } from '../store/gameStore'
+import { useEffect } from 'react'
 
 const GameLobby: React.FC = () => {
-  const history = useHistory()
-  const {
-    roomCode,
-    memberId,
-    userName,
-    setGameId,
-    isHost
-  } = usePlayerStore()
+  const router = useIonRouter()
+  const { roomCode, memberId, userName, setGameId, isHost } = usePlayerStore()
 
   // Poll for game start and auto-navigate all players
   useEffect(() => {
@@ -21,14 +14,20 @@ const GameLobby: React.FC = () => {
 
     const pollGameStart = async () => {
       try {
-        const response = await fetch(`http://localhost:3000/rooms/${roomCode}/status`)
+        const response = await fetch(
+          `http://localhost:3000/rooms/${roomCode}/status`
+        )
         const data = await response.json()
 
         if (data.gameId && typeof data.gameId === 'string') {
           setGameId(data.gameId)
           localStorage.setItem('battleWordsGameId', data.gameId)
           localStorage.setItem('battleWordsMemberId', memberId)
-          history.push(`/gameplay?gameId=${data.gameId}&memberId=${memberId}`)
+          router.push(
+            `/gameplay?gameId=${data.gameId}&memberId=${memberId}`,
+            'forward',
+            'push'
+          )
         }
       } catch (error) {
         console.error('Error polling for game start', error)
@@ -36,10 +35,11 @@ const GameLobby: React.FC = () => {
     }
 
     const interval = setInterval(pollGameStart, 1000)
+
     return () => {
       clearInterval(interval)
     }
-  }, [roomCode, memberId, history, setGameId])
+  }, [roomCode, memberId, router, setGameId])
 
   const startGame = async () => {
     if (!roomCode || !memberId) {
@@ -48,9 +48,12 @@ const GameLobby: React.FC = () => {
     }
 
     try {
-      const response = await fetch(`http://localhost:3000/games/${roomCode}/start`, {
-        method: 'POST'
-      })
+      const response = await fetch(
+        `http://localhost:3000/games/${roomCode}/start`,
+        {
+          method: 'POST'
+        }
+      )
 
       if (!response.ok) {
         throw new Error('Unable to start the game')
@@ -60,7 +63,11 @@ const GameLobby: React.FC = () => {
       setGameId(data.id)
       localStorage.setItem('battleWordsGameId', data.id)
       localStorage.setItem('battleWordsMemberId', memberId)
-      history.push(`/gameplay?gameId=${data.id}&memberId=${memberId}`)
+      router.push(
+        `/gameplay?gameId=${data.id}&memberId=${memberId}`,
+        'forward',
+        'push'
+      )
     } catch (error) {
       console.error('Failed to start game', error)
     }
@@ -70,16 +77,20 @@ const GameLobby: React.FC = () => {
     <IonPage>
       <IonTitle>Game Lobby</IonTitle>
       <div style={{ padding: '16px' }}>
-        <p><strong>Room code:</strong> {roomCode || 'Not available'}</p>
-        <p><strong>Player:</strong> {userName}</p>
-        <p><strong>Member ID:</strong> {memberId || 'Not available'}</p>
+        <p>
+          <strong>Room code:</strong> {roomCode || 'Not available'}
+        </p>
+        <p>
+          <strong>Player:</strong> {userName}
+        </p>
+        <p>
+          <strong>Member ID:</strong> {memberId || 'Not available'}
+        </p>
 
-        {isHost && (
-          <IonButton onClick={startGame}>Start Game</IonButton>
-        )}
+        {isHost && <IonButton onClick={startGame}>Start Game</IonButton>}
       </div>
     </IonPage>
   )
 }
 
-export default GameLobby;
+export default GameLobby
