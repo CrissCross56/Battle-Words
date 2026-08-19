@@ -1,0 +1,49 @@
+/* Global shared styles */
+
+/* === BUTTONS === */
+.button-primary {
+  --border-radius: 12px;
+  font-weight: 600;
+  text-transform: none;
+}
+
+/* === CARDS === */
+.card-shadow {
+  box-shadow: 0 2px 12px rgba(0, 0, 0, 0.08);
+  border-radius: 16px;
+}
+
+/* === DARK MODE — Full App === */
+html.dark {
+  --ion-background-color: #121212;
+  --ion-text-color: #ffffff;
+  --ion-toolbar-background: #1e1e1e;
+  --ion-item-background: #1e1e1e;
+  --ion-card-background: #1e1e1e;
+  --ion-border-color: #2a2a2a;
+  --ion-color-light: #2a2a2a;
+}
+
+html.dark .card-shadow {
+  box-shadow: 0 2px 12px rgba(255, 255, 255, 0.05);
+}
+
+html.dark ion-card {
+  background: #1e1e1e;
+  border: 1px solid #2a2a2a;
+}
+
+html.dark h1,
+html.dark h2,
+html.dark h3,
+html.dark h4 {
+  color: #ffffff;
+}
+
+html.dark p {
+  color: #aaaaaa;
+}
+
+html.dark .ion-text-center p {
+  color: #cccccc;
+}

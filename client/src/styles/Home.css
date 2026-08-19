@@ -1,0 +1,41 @@
+/* Home page specific styles */
+
+/* === LAYOUT: Two buttons side by side === */
+.button-row {
+  display: flex;
+  gap: 12px;
+  margin-bottom: 12px;
+}
+
+.button-row ion-button {
+  flex: 1;
+  min-width: 0;
+}
+
+/* === RESPONSIVE: Stack on small screens === */
+@media (max-width: 480px) {
+  .button-row {
+    flex-direction: column;
+    gap: 8px;
+  }
+}
+
+/* === TYPOGRAPHY === */
+h1 {
+  font-size: 3rem;
+  margin-bottom: 0.25rem;
+}
+
+p {
+  color: var(--ion-color-medium);
+  margin-top: 0;
+}
+
+/* === DARK MODE OVERRIDES === */
+html.dark h1 {
+  color: #ffffff;
+}
+
+html.dark p {
+  color: #aaaaaa;
+}
