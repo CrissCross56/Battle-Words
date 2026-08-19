@@ -1,10 +1,16 @@
 /* MakeLobby page specific styles */
 
-/* === FORM CONTAINER === */
+/* === FORM CONTAINER - Less Wide === */
 .form-container {
-  max-width: 400px;
+  max-width: 360px;  /* Reduced from 400px */
   margin: 0 auto;
   padding: 0 4px;
+}
+
+/* === FORM CARD - Less Wide === */
+.form-card {
+  max-width: 420px;  /* Limits the card width */
+  margin: 0 auto;
 }
 
 /* === FORM GROUP === */
