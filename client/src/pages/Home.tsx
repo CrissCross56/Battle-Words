@@ -9,6 +9,7 @@ import {
 import './Home.css'
 
 const Home: React.FC = () => {
+  const {isHost, setHost} = usePlayerStore()
   return (
     <IonPage>
       <IonHeader>
