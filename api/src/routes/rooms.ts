@@ -135,4 +135,38 @@ router.post('/:roomCode/join', async (req, res) => {
   }
 })
 
+router.get('/:roomCode/status', async (req, res) => {
+  try {
+    const { roomCode } = req.params
+
+    const room = await prisma.room.findUnique({
+      where: {
+        code: roomCode
+      }
+    })
+
+    if (!room) {
+      return res.status(404).json({
+        error: 'Room not found'
+      })
+    }
+
+    const activeGame = await prisma.game.findFirst({
+      where: {
+        roomId: room.id,
+        endedAt: null
+      }
+    })
+
+    res.status(200).json({
+      gameId: activeGame?.id || null
+    })
+  } catch (error) {
+    console.error(error)
+    res.status(500).json({
+      error: 'Failed to check room status'
+    })
+  }
+})
+
 export default router
