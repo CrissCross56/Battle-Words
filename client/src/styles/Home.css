@@ -22,7 +22,7 @@
 
 /* === TYPOGRAPHY === */
 h1 {
-  font-size: 2.2rem;
+  font-size: 3rem;
   margin-bottom: 0.25rem;
 }
 
@@ -32,10 +32,10 @@ p {
 }
 
 /* === DARK MODE OVERRIDES === */
-body.dark h1 {
+html.dark h1 {
   color: #ffffff;
 }
 
-body.dark p {
+html.dark p {
   color: #aaaaaa;
 }
