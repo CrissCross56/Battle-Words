@@ -37,7 +37,8 @@ import JoinLobby from './pages/JoinLobby';
 import MakeLobby from './pages/MakeLobby';
 import GameLobby from './pages/GameLobby';
 import HowToPlay from './pages/HowToPlay';
-import Lobby from './pages/Lobby'
+import Lobby from './pages/Lobby';
+import Results from './pages/Results'
 setupIonicReact();
 
 const App: React.FC = () => (
@@ -64,6 +65,9 @@ const App: React.FC = () => (
         </Route>
         <Route exact path="/lobby/:roomCode">
           <Lobby />
+        </Route>
+        <Route exact path="/results">
+         <Results />
         </Route>
       </IonRouterOutlet>
     </IonReactRouter>

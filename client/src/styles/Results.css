@@ -1,0 +1,43 @@
+/* Results page specific styles */
+
+/* === CARD OVERRIDES === */
+.results-card {
+  max-width: 500px;
+  margin: 0 auto;
+}
+
+/* === SCOREBOARD === */
+.score-item {
+  --padding-start: 0;
+  --inner-padding-end: 0;
+  margin-bottom: 4px;
+}
+
+.score-item::part(native) {
+  background: transparent;
+}
+
+/* === RANK BADGE === */
+.rank-badge {
+  font-weight: bold;
+  min-width: 40px;
+}
+
+/* === SCORE CHIP === */
+.score-chip {
+  font-weight: bold;
+  padding: 8px 16px;
+  border-radius: 20px;
+}
+
+/* === RESPONSIVE === */
+@media (max-width: 480px) {
+  .results-card {
+    max-width: 100%;
+  }
+}
+
+/* === DARK MODE === */
+html.dark .score-item {
+  --background: transparent;
+}
