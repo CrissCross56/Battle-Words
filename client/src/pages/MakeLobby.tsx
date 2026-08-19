@@ -3,6 +3,7 @@ import { IonItem, IonList, IonSelect, IonSelectOption } from '@ionic/react';
 import { useForm } from 'react-hook-form';
 import { useMutation } from "@tanstack/react-query";
 import { Redirect } from 'react-router';
+import { useState } from 'react';
 import { usePlayerStore } from "../store/gameStore";
 
 // Function to data to the backend
@@ -96,7 +97,7 @@ const MakeLobby: React.FC = () => {
     
     //if a flag has been hit then return a redirect
     if(joinLobby){
-        return <Redirect to="/game-lobby" />;
+        return <Redirect to={`/lobby/${roomCode}`}/>;
     }
     
     return (

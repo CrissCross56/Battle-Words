@@ -3,7 +3,7 @@
 // Grant - Add the appropriate ones for this.
 //      router.push(`/lobby/${roomCode}`)
 //      router.push(`/lobby/${roomCode}`)
-
+import { usePlayerStore } from "../store/gameStore";
 import { useEffect, useState } from 'react'
 import {
   IonPage,
@@ -20,6 +20,9 @@ import {
 } from '@ionic/react'
 import { useIonRouter } from '@ionic/react'
 import { useParams } from 'react-router-dom'
+import { useForm } from 'react-hook-form';
+import { useMutation } from "@tanstack/react-query";
+import { Redirect } from 'react-router';
 
 interface Player {
   id: string
@@ -29,6 +32,8 @@ interface Player {
 }
 
 const Lobby: React.FC = () => {
+  //destructure zustand info
+  const {userName, numRounds} = usePlayerStore()
   const router = useIonRouter()
   const { roomCode } = useParams<{ roomCode: string }>()
   const [players, setPlayers] = useState<Player[]>([])

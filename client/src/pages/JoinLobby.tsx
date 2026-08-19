@@ -98,7 +98,7 @@ const JoinLobby: React.FC = () => {
     
     
     if(joinLobby){
-        return <Redirect to="/game-lobby" />;
+        return <Redirect to={`/lobby/${roomCode}`} />;
     }
     return (
         <IonPage>
