@@ -1,0 +1,106 @@
+.home-content {
+  --background: rgba(15, 23, 42, 0.72);
+  --color: #1e293b;
+}
+
+.home-container {
+  width: 90%;
+  min-height: 100%;
+
+  margin: 0 auto;
+
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+
+  text-align: center;
+}
+
+.home-hero {
+  width: 100%;
+  max-width: 70%;
+  margin-bottom: 7%;
+}
+
+.home-hero h1 {
+  margin: 0 0 3%;
+
+  font-size: clamp(2.5rem, 7vw, 5rem);
+  font-weight: 800;
+  letter-spacing: -0.04em;
+
+  background: linear-gradient(135deg, #2563eb, #7c3aed);
+
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+}
+
+.home-hero p {
+  width: 90%;
+  margin: 0 auto;
+
+  font-size: clamp(1rem, 2vw, 1.25rem);
+  line-height: 1.6;
+
+  color: #475569;
+}
+
+.home-actions {
+  width: 45%;
+}
+
+.home-actions ion-button {
+  width: 100%;
+  margin: 3% 0;
+
+  --border-radius: 0.7rem;
+
+  font-weight: 700;
+  letter-spacing: 0.02em;
+}
+
+.home-actions ion-button:first-child {
+  --background: linear-gradient(135deg, #3b82f6, #8b5cf6);
+
+  --background-hover: linear-gradient(135deg, #2563eb, #7c3aed);
+
+  --color: #ffffff;
+}
+
+.home-actions ion-button:nth-child(2) {
+  --background: rgba(255, 255, 255, 0.45);
+  --border-color: rgba(96, 165, 250, 0.65);
+  --border-width: 1px;
+  --color: #334e7d;
+}
+
+.home-actions ion-button:last-child {
+  --color: #52658a;
+}
+
+@media (max-width: 700px) {
+  .home-hero {
+    max-width: 90%;
+    margin-bottom: 10%;
+  }
+
+  .home-actions {
+    width: 70%;
+  }
+}
+
+@media (max-width: 450px) {
+  .home-container {
+    width: 92%;
+  }
+
+  .home-hero {
+    max-width: 100%;
+  }
+
+  .home-actions {
+    width: 85%;
+  }
+}

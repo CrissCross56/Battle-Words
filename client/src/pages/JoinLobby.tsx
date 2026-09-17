@@ -1,11 +1,15 @@
-import { IonPage, IonTitle, IonButton } from '@ionic/react';
-import { useForm } from 'react-hook-form';
-import { useMutation } from '@tanstack/react-query';
-import { useHistory } from 'react-router-dom';
-import { usePlayerStore } from '../store/gameStore';
+import { IonPage, IonTitle, IonButton } from '@ionic/react'
+import { useForm } from 'react-hook-form'
+import { useMutation } from '@tanstack/react-query'
+import { useHistory } from 'react-router-dom'
+import { usePlayerStore } from '../store/gameStore'
+const API_URL = import.meta.env.VITE_API_URL
 
-async function joinRoom (roomCode: string, data: { username: string, role: 'PLAYER' | 'SPECTATOR' }) {
-  const res = await fetch(`http://localhost:3000/rooms/${roomCode}/join`, {
+async function joinRoom (
+  roomCode: string,
+  data: { username: string; role: 'PLAYER' | 'SPECTATOR' }
+) {
+  const res = await fetch(`${API_URL}/rooms/${roomCode}/join`, {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json'
@@ -35,19 +39,21 @@ const JoinLobby: React.FC = () => {
     }
   })
 
-  const {
-    setUsername,
-    setRoomCode,
-    setMemberId,
-    setRoomId,
-    setHost
-  } = usePlayerStore()
+  const { setUsername, setRoomCode, setMemberId, setRoomId, setHost } =
+    usePlayerStore()
 
   const mutation = useMutation({
-    mutationFn: ({ roomCode, username }: { roomCode: string, username: string }) => joinRoom(roomCode, {
-      username,
-      role: 'PLAYER'
-    }),
+    mutationFn: ({
+      roomCode,
+      username
+    }: {
+      roomCode: string
+      username: string
+    }) =>
+      joinRoom(roomCode, {
+        username,
+        role: 'PLAYER'
+      }),
     onSuccess: (response: any, variables) => {
       setUsername(variables.username)
       setRoomCode(variables.roomCode)
@@ -62,7 +68,7 @@ const JoinLobby: React.FC = () => {
     }
   })
 
-  const onSubmit = (data: { userName: string, lobbyCode: string }) => {
+  const onSubmit = (data: { userName: string; lobbyCode: string }) => {
     mutation.mutate({
       roomCode: data.lobbyCode.trim(),
       username: data.userName.trim()
@@ -86,4 +92,4 @@ const JoinLobby: React.FC = () => {
   )
 }
 
-export default JoinLobby;
+export default JoinLobby
