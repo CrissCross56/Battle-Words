@@ -1,11 +1,25 @@
-import { IonPage, IonTitle, IonButton, IonHeader, IonItem, IonList, IonSelect, IonSelectOption } from '@ionic/react';
-import { useForm } from 'react-hook-form';
-import { useMutation } from '@tanstack/react-query';
-import { useHistory } from 'react-router-dom';
-import { usePlayerStore } from '../store/gameStore';
+import {
+  IonPage,
+  IonTitle,
+  IonButton,
+  IonHeader,
+  IonItem,
+  IonList,
+  IonSelect,
+  IonSelectOption
+} from '@ionic/react'
+import { useForm } from 'react-hook-form'
+import { useMutation } from '@tanstack/react-query'
+import { useHistory } from 'react-router-dom'
+import { usePlayerStore } from '../store/gameStore'
+const API_URL = import.meta.env.VITE_API_URL
 
-async function createRoom (data: { username: string, totalRounds: number, role: 'PLAYER' | 'SPECTATOR' }) {
-  const res = await fetch('http://localhost:3000/rooms', {
+async function createRoom (data: {
+  username: string
+  totalRounds: number
+  role: 'PLAYER' | 'SPECTATOR'
+}) {
+  const res = await fetch(`${API_URL}/rooms`, {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json'
@@ -72,14 +86,22 @@ const MakeLobby: React.FC = () => {
 
   return (
     <IonPage>
-      <IonTitle><IonHeader>Make Lobby</IonHeader></IonTitle>
+      <IonTitle>
+        <IonHeader>Make Lobby</IonHeader>
+      </IonTitle>
 
       <form onSubmit={handleSubmit(onSubmit)}>
         <label> Username: </label>
-        <input onInput={(e) => setUsername((e.target as HTMLInputElement).value)} {...register('userName')} />
+        <input
+          onInput={e => setUsername((e.target as HTMLInputElement).value)}
+          {...register('userName')}
+        />
         <IonList>
           <IonItem>
-            <IonSelect onIonChange={(e) => setNumRounds(Number(e.detail.value))} placeholder='Select Number of Turns'>
+            <IonSelect
+              onIonChange={e => setNumRounds(Number(e.detail.value))}
+              placeholder='Select Number of Turns'
+            >
               <IonSelectOption value={1}>1</IonSelectOption>
               <IonSelectOption value={2}>2</IonSelectOption>
               <IonSelectOption value={3}>3</IonSelectOption>
@@ -96,4 +118,4 @@ const MakeLobby: React.FC = () => {
   )
 }
 
-export default MakeLobby;
+export default MakeLobby
